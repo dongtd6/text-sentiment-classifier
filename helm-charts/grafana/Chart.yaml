@@ -1,0 +1,12 @@
+apiVersion: v1
+name: grafana
+description: My Helm Chart for Grafana monitoring for my application
+
+type: application
+
+version: 0.0.1
+appVersion: "0.0.1"
+
+maintainers:
+- email: dongtd6@gmail.com
+  name: dongtd6

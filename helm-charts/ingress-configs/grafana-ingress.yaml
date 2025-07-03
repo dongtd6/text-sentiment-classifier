@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: monitoring # Đảm bảo đúng namespace
+  # annotations:
+  #   kubernetes.io/ingress.class: "nginx"
+    # Tùy chọn: Nếu bạn muốn Grafana ở đường dẫn con (e.g., /grafana) và Grafana không được cấu hình basePath
+    # nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: grafana.tsc.vn # Thay bằng domain hoặc IP.nip.io của bạn
+    http:
+      paths:
+      - path: / # Đường dẫn bạn muốn truy cập Grafana qua
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana # Tên service của Grafana (thường là 'grafana')
+            port:
+              number: 80 # Cổng mặc định của Grafana HTTP
