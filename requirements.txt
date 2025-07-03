@@ -1,0 +1,21 @@
+fastapi==0.96.0
+joblib==1.1.0
+lightgbm==3.3.4
+loguru==0.7.0
+pandas==1.4.4
+pytest==7.1.2
+requests==2.31.0
+scikit-learn==1.0.2
+uvicorn[standard]==0.22.0
+gunicorn==23.0.0
+
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-exporter-jaeger
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-asgi
+
+# joblib==1.1.1
+# scikit-learn==1.2.0
+
+#pip install -r requirements.txt --no-cache-dir

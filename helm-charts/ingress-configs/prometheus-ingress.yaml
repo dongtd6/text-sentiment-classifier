@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-ingress
+  namespace: monitoring
+  # annotations:
+  #   kubernetes.io/ingress.class: "nginx"
+  #   nginx.ingress.kubernetes.io/rewrite-target: /$2 # Prometheus UI cũng thường không hỗ trợ basePath
+spec:
+  ingressClassName: nginx # Đảm bảo sử dụng Ingress class NGINX
+  rules:
+  - host: prometheus.tsc.vn # Thay bằng domain hoặc IP.nip.io của bạn
+    http:
+      paths:
+      - path: / #/prometheus(/|$)(.*)  Đường dẫn bạn muốn truy cập Prometheus UI qua
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus # Tên service của Prometheus (thường là 'prometheus-server' hoặc tương tự)
+            port:
+              number: 30001 # Cổng mặc định của Prometheus UI HTTP (thường là 80)

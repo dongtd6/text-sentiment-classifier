@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-nginx-ingress
+  namespace: {{ .Values.image.namspace }}
+  # https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#controller_summary
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: 34.126.164.80.nip.io # 34.126.164.80 is external ip of nginx service
+    http:
+      paths:
+      - path: /docs
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: 30000
+      - path: /openapi.json
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: 30000
+      - path: /predict
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: 30000

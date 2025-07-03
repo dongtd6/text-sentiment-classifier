@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: monitoring
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port:   '9090'
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  type: ClusterIP
+  # Uncomment the following lines to expose Prometheus on a NodePort
+  # type: NodePort
+  # Uncomment the following lines to expose Prometheus on a LoadBalancer
+  # type: LoadBalancer
+  # Uncomment the following lines to expose Prometheus on a ClusterIP
+  # type: ClusterIP
+  # Uncomment the following lines to expose Prometheus on an ExternalName
+  # type: ExternalName
+  # Uncomment the following lines to expose Prometheus on a Headless Service
+  # type: Headless
+  # Uncomment the following lines to expose Prometheus on a MultiCluster Service
+  # type: MultiCluster      
+  ports:
+    - port: 9090
+      protocol: TCP
+      targetPort: 9090
+      #nodePort: 30001

@@ -1,0 +1,27 @@
+version: '3.8'
+services: 
+  tscapp:
+    container_name: tsc
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '30001:30000'
+    image: tsc
+ 
+  # tsc_2:
+  #   # The name will be displayed
+  #   # in docker ps
+  #   container_name: tsc2
+  #   # Build the image from Dockerfile
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   # Expose port 30000
+  #   ports:
+  #     - '30001:30000'
+  #   # And set the image name
+  #   image: text-sentiment-classifier
+
+  #docker-compose up --build
+

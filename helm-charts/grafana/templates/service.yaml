@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: monitoring
+  annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port:   '3000'
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  type: NodePort
+  # Uncomment the following lines to expose Grafana on a NodePort
+  # type: NodePort
+  # Uncomment the following lines to expose Grafana on a LoadBalancer
+  # type: LoadBalancer
+  # Uncomment the following lines to expose Grafana on a ClusterIP
+  # type: ClusterIP
+  # Uncomment the following lines to expose Grafana on an ExternalName
+  # type: ExternalName
+  # Uncomment the following lines to expose Grafana on a Headless Service
+  # type: Headless
+  # Uncomment the following lines to expose Grafana on a LoadBalancer with specific ports
+  # loadBalancerIP: <your-load-balancer-ip>
+  # loadBalancerSourceRanges:
+  #   - <your-source-range>
+  # Uncomment the following lines to expose Grafana on a NodePort with specific ports
+  # nodePort: 30000
+  # Uncomment the following lines to expose Grafana on a ClusterIP with specific ports 
+  # clusterIP: <your-cluster-ip>
+  # Uncomment the following lines to expose Grafana on an ExternalName with specific ports
+  # externalName: <your-external-name>
+  # Uncomment the following lines to expose Grafana on a Headless Service with specific ports
+  # clusterIP: None
+  # Uncomment the following lines to expose Grafana on a LoadBalancer with specific ports
+  # loadBalancerIP: <your-load-balancer-ip>
+  # loadBalancerSourceRanges:
+  #   - <your-source-range>
+  # Uncomment the following lines to expose Grafana on a NodePort with specific ports
+  # nodePort: 30000
+  # Uncomment the following lines to expose Grafana on a ClusterIP with specific ports
+  # clusterIP: <your-cluster-ip>
+  # Uncomment the following lines to expose Grafana on an ExternalName with specific ports
+  # externalName: <your-external-name>
+  # Uncomment the following lines to expose Grafana on a Headless Service with specific ports
+  # clusterIP: None
+  # Uncomment the following lines to expose Grafana on a LoadBalancer with specific ports
+  # loadBalancerIP: <your-load-balancer-ip>
+  # loadBalancerSourceRanges:
+  #   - <your-source-range>
+  # Uncomment the following lines to expose Grafana on a NodePort with specific ports
+  # nodePort: 30000
+  # Uncomment the following lines to expose Grafana on a ClusterIP with specific ports
+  # clusterIP: <your-cluster-ip>  
+  # Uncomment the following lines to expose Grafana on an ExternalName with specific ports
+  # externalName: <your-external-name>
+  # Uncomment the following lines to expose Grafana on a Headless Service with specific ports
+  # clusterIP: None         
+               
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 30005

@@ -1,0 +1,8 @@
+image:
+  repository: grafana/grafana
+  tag: latest
+
+metrics:
+  node-exporter:
+    metricsTuning:
+      useIntegrationAllowList: true

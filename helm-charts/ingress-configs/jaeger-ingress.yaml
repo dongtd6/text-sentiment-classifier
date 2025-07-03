@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jaeger-ingress
+  namespace: monitoring
+  # annotations:
+  #   kubernetes.io/ingress.class: "nginx"
+  #   nginx.ingress.kubernetes.io/rewrite-target: /$2 # Jaeger UI cũng cần rewrite nếu dùng subpath
+spec:
+  ingressClassName: nginx # Đảm bảo sử dụng Ingress class NGINX
+  rules:
+  - host: jaeger.tsc.vn  # Thay bằng domain hoặc IP.nip.io của bạn
+    http:
+      paths:
+      - path: / # Đường dẫn bạn muốn truy cập Jaeger UI qua
+        pathType: Prefix
+        backend:
+          service:
+            name: jaeger-tracing-jaeger-all-in-one # Tên service của Jaeger UI
+            port:
+              number: 16686 # Cổng mặc định của Jaeger UI (hoặc 80, tùy vào cấu hình service của bạn)

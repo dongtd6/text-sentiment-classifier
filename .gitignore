@@ -35,3 +35,187 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+# PyCharm specific files
+.idea/
+# VS Code specific files
+.vscode/
+# PyInstaller
+# PyInstaller creates a lot of files, including a build directory and a dist directory
+build/
+dist/
+# PyInstaller specific files
+*.spec
+# Coverage reports
+.coverage
+# Pytest cache
+.pytest_cache/
+# Local Python bytecode files
+__pycache__
+# Mypy cache
+.mypy_cache/        
+# Terraform state files
+*.tfstate
+*.tfstate.*
+# Local Terraform directories/logs
+.terraform/
+crash.log
+crash.*.log
+# Local Terraform plan files
+*.tfplan
+# Local Terraform variables files 
+*.tfvars               
+# Virtual environment directories
+.venv/
+venv/*
+# Local environment files
+.env
+# Local configuration files
+*.local
+# Local settings files
+*.settings
+# Local database files
+*.db
+# Local SQLite files
+*.sqlite3
+# Local log files
+*.log
+# Local egg files
+*.egg
+# Local distribution files
+*.dist-info/
+# Local wheel files
+*.whl
+# Local zip files
+*.zip
+# Local tar files
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+# Local coverage files
+.coverage
+# Local coverage configuration files
+.coveragerc
+# Local mypy cache
+.mypy_cache/
+# Local pytest cache
+.pytest_cache/
+# Local tox environments
+.tox/
+# Local VS Code settings
+.vscode/
+# Local PyCharm settings
+.idea/
+# Local macOS files
+.DS_Store
+# Local swap files
+*.swp
+# Local swap files
+*.swo
+# Local backup files
+*.bak
+# Local temporary files
+*.tmp
+# Local Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+# Local Jupyter Notebook metadata
+######*.ipynb
+# Local Jupyter Notebook output files
+*.ipynb_checkpoints/
+# Local Jupyter Notebook configuration files
+.jupyter/
+# Local Jupyter Notebook kernels
+.kernels/
+# Local Jupyter Notebook extensions
+.jupyter_extensions/
+# Local Jupyter Notebook server files
+.jupyter_server/
+# Local Jupyter Notebook runtime files
+.jupyter_runtime/
+# Local Jupyter Notebook logs
+.jupyter_logs/
+# Local Jupyter Notebook history files
+.jupyter_history/
+# Local Jupyter Notebook security files
+.jupyter_security/
+# Local Jupyter Notebook configuration files
+.jupyter_config/
+# Local Jupyter Notebook kernelspec files
+.kernelspec/
+# Local Jupyter Notebook extensions
+.jupyter_extensions/
+# Local Jupyter Notebook server files
+.jupyter_server/
+# Local Jupyter Notebook runtime files
+.jupyter_runtime/
+# Local Jupyter Notebook logs
+.jupyter_logs/
+# Local Jupyter Notebook history files
+.jupyter_history/
+# Local Jupyter Notebook security files
+.jupyter_security/
+# Local Jupyter Notebook configuration files
+.jupyter_config/
+# Local Jupyter Notebook kernelspec files
+.kernelspec/
+# Local Jupyter Notebook extensions
+.jupyter_extensions/
+# Local Jupyter Notebook server files
+.jupyter_server/
+# Local Jupyter Notebook runtime files
+.jupyter_runtime/
+# Local Jupyter Notebook logs
+.jupyter_logs/
+# Local Jupyter Notebook history files
+.jupyter_history/
+# Local Jupyter Notebook security files
+.jupyter_security/
+# Local Jupyter Notebook configuration files
+.jupyter_config/
+# Local Jupyter Notebook kernelspec files
+.kernelspec/
+# Local Jupyter Notebook extensions
+.jupyter_extensions/
+# Local Jupyter Notebook server files
+.jupyter_server/
+# Local Jupyter Notebook runtime files
+.jupyter_runtime/
+# Local Jupyter Notebook logs
+.jupyter_logs/
+# Local Jupyter Notebook history files
+.jupyter_history/
+# Local Jupyter Notebook security files
+.jupyter_security/
+# Local Jupyter Notebook configuration files
+.jupyter_config/
+# Local Jupyter Notebook kernelspec files
+.kernelspec/
+# Local Jupyter Notebook extensions
+.jupyter_extensions/
+# Local Jupyter Notebook server files
+.jupyter_server/
+# Local Jupyter Notebook runtime files
+.jupyter_runtime/
+# Local Jupyter Notebook logs
+.jupyter_logs/
+# Local Jupyter Notebook history files
+.jupyter_history/
+# Local Jupyter Notebook security files
+.jupyter_security/
+# Local Jupyter Notebook configuration files
+.jupyter_config/
+# Local Jupyter Notebook kernelspec files
+.kernelspec/
+# Local Jupyter Notebook extensions
+.jupyter_extensions/
+# Local Jupyter Notebook server files
+.jupyter_server/
+# Local Jupyter Notebook runtime files
+.jupyter_runtime/
+# Local Jupyter Notebook logs
+.jupyter_logs/
+# Local Jupyter Notebook history files
+.jupyter_history/
