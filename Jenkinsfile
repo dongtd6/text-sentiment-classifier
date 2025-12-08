@@ -58,14 +58,14 @@ pipeline {
         stage('Cleanup old Batch Container & Run New') {
           steps {
             // Use dollar-slashy so that $ and $(...) are passed literally to shell
-            sh $/
+            sh '''
               # Remove old container if exists (running or exited)
               if [ "$(docker ps -a -q -f name=batch-app)" ]; then
                 docker rm -f batch-app || true
               fi
               # Run new container
               docker run -d --name batch-app -p 5000:80 ${GCR_REPO}/batch-app:latest
-            /$
+            '''
           }
         }
       }
@@ -105,12 +105,12 @@ pipeline {
         }
         stage('Cleanup old Streaming Container & Run New') {
           steps {
-            sh $/
+            sh '''
               if [ "$(docker ps -a -q -f name=stream-app)" ]; then
                 docker rm -f stream-app || true
               fi
               docker run -d --name stream-app -p 5001:80 ${GCR_REPO}/stream-app:latest
-            /$
+            '''
           }
         }
       }
