@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-service-account')
+    GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-artifact-key')
     GOOGLE_CLOUD_PROJECT = credentials('gcp-project-id')
     GCR_REPO = "asia-southeast1-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/bnb-c2c-images"
   }
@@ -35,7 +35,7 @@ pipeline {
         }
         stage('Authenticate with GCP') {
           steps {
-            withCredentials([file(credentialsId: 'gcp-service-account', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            withCredentials([file(credentialsId: 'gcp-artifact-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
               sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
               sh "gcloud config set project ${GOOGLE_CLOUD_PROJECT}"
               sh "gcloud auth configure-docker asia-southeast1-docker.pkg.dev"
@@ -78,7 +78,7 @@ pipeline {
         }
         stage('Authenticate with GCP') {
           steps {
-            withCredentials([file(credentialsId: 'gcp-service-account', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            withCredentials([file(credentialsId: 'gcp-artifact-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
               sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
               sh "gcloud config set project ${GOOGLE_CLOUD_PROJECT}"
               sh "gcloud auth configure-docker asia-southeast1-docker.pkg.dev"
