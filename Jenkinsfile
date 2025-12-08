@@ -21,6 +21,7 @@ pipeline {
       }
     }
 
+    // BLOCK: batch-processing nếu có thay đổi
     stage('Batch: Build & Deploy') {
       when {
         changeset "dockerfiles/batch-processing/**"
@@ -33,12 +34,14 @@ pipeline {
             }
           }
         }
-        stage('Authenticate with GCP') {
+        stage('Authenticate with GCP & Configure Docker') {
           steps {
             withCredentials([file(credentialsId: 'gcp-artifact-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-              sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
-              sh "gcloud config set project ${GOOGLE_CLOUD_PROJECT}"
-              sh "gcloud auth configure-docker asia-southeast1-docker.pkg.dev"
+              sh """
+                gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+                gcloud config set project ${GOOGLE_CLOUD_PROJECT}
+                gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+              """
             }
           }
         }
@@ -50,13 +53,14 @@ pipeline {
             """
           }
         }
-        stage('Deploy Batch Container') {
+        stage('Cleanup old Batch Container and Run New') {
           steps {
             sh """
-              if [ \$(docker ps -q -f name=batch-app) ]; then
-                  docker stop batch-app || true
-                  docker rm batch-app || true
+              # Remove old container (running or exited)
+              if [ "$(docker ps -a -q -f name=batch-app)" ]; then
+                docker rm -f batch-app || true
               fi
+              # Run new container
               docker run -d --name batch-app -p 5000:80 ${GCR_REPO}/batch-app:latest
             """
           }
@@ -64,6 +68,7 @@ pipeline {
       }
     }
 
+    // BLOCK: streaming-processing nếu có thay đổi
     stage('Streaming: Build & Deploy') {
       when {
         changeset "dockerfiles/streaming-processing/**"
@@ -76,12 +81,14 @@ pipeline {
             }
           }
         }
-        stage('Authenticate with GCP') {
+        stage('Authenticate with GCP & Configure Docker') {
           steps {
             withCredentials([file(credentialsId: 'gcp-artifact-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-              sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
-              sh "gcloud config set project ${GOOGLE_CLOUD_PROJECT}"
-              sh "gcloud auth configure-docker asia-southeast1-docker.pkg.dev"
+              sh """
+                gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+                gcloud config set project ${GOOGLE_CLOUD_PROJECT}
+                gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+              """
             }
           }
         }
@@ -93,12 +100,11 @@ pipeline {
             """
           }
         }
-        stage('Deploy Streaming Container') {
+        stage('Cleanup old Streaming Container and Run New') {
           steps {
             sh """
-              if [ \$(docker ps -q -f name=stream-app) ]; then
-                  docker stop stream-app || true
-                  docker rm stream-app || true
+              if [ "$(docker ps -a -q -f name=stream-app)" ]; then
+                docker rm -f stream-app || true
               fi
               docker run -d --name stream-app -p 5001:80 ${GCR_REPO}/stream-app:latest
             """
@@ -107,6 +113,7 @@ pipeline {
       }
     }
 
+    // Nếu không thay đổi dockerfiles nào
     stage('No Docker Changes Detected') {
       when {
         allOf {
@@ -115,8 +122,24 @@ pipeline {
         }
       }
       steps {
-        echo "No changes in dockerfiles subfolders — skip Docker build/push/deploy."
+        echo "No changes in dockerfiles — skip Docker build/push/deploy."
       }
+    }
+
+    // Optional: cleanup dangling images (sau build)
+    stage('Cleanup Docker Images') {
+      steps {
+        sh """
+          docker image prune -a -f || true
+        """
+      }
+    }
+  }
+
+  post {
+    always {
+      // Optionally: any cleanup, notifications...
+      echo "Pipeline finished."
     }
   }
 }
