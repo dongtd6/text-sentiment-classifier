@@ -1,0 +1,7 @@
+binance_sdk_c2c
+PyYAML
+pandas
+pyarrow
+psycopg2-binary
+SQLAlchemy
+loguru
