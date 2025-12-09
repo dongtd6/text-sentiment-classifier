@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
-from airflow.kubernetes.secret import Secret
+from airflow.providers.cncf.kubernetes.secret import Secret
 
 # Define where to fetch secrets from in Kubernetes
 # This maps the Kubernetes Secret 'airflow-producer-secret' key 'API_KEY' 
