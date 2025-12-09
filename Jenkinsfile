@@ -30,9 +30,8 @@ pipeline {
       stages {
         stage('Build Batch Docker Image') {
           steps {
-            dir('dockerfiles/batch-processing') {
-              sh 'docker build -t batch-app:latest .'
-            }
+            // Build from root workspace context
+            sh 'docker build -f dockerfiles/batch-processing/Dockerfile -t batch-app:latest .'
           }
         }
         stage('Authenticate with GCP & Configure Docker') {
