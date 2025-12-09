@@ -15,7 +15,7 @@ COPY dockerfiles/utils.py /app/utils.py
 COPY dockerfiles/data_ingestion.py /app/data_ingestion.py
 COPY dockerfiles/batch-processing/ingestion.py /app/ingestion.py
 
-# Make sure the application code is in PYTHONPATH
+# Make sure the application code is in PYTHONPATHadf
 ENV PYTHONPATH=/app
 
 CMD ["python", "ingestion.py"]
