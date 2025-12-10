@@ -2,20 +2,28 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
+# Install Java (required for Spark)
+RUN apt-get update && \
+    apt-get install -y default-jdk && \
+    apt-get clean;
+
 # Copy requirements if you have one
 COPY dockerfiles/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pyspark delta-spark pyyaml
 
 # Copy necessary scripts
-# Since the Dockerfile is in dockerfiles/batch-processing/
-# and utils.py and data_ingestion.py are in dockerfiles/
-# We need to set the build context correctly when running 'docker build'
-# For example: docker build -f dockerfiles/batch-processing/Dockerfile . (from repo root)
+# We assume build context is the repository root
 COPY dockerfiles/utils.py /app/utils.py
 COPY dockerfiles/data_ingestion.py /app/data_ingestion.py
 COPY dockerfiles/batch-processing/ingestion.py /app/ingestion.py
+COPY dockerfiles/batch-processing/bronze_job.py /app/bronze_job.py
 
-# Make sure the application code is in PYTHONPATHadf
+# Copy common modules and configs
+COPY dockerfiles/batch-processing/common /app/common
+COPY dockerfiles/batch-processing/configs /app/configs
+
+# Make sure the application code is in PYTHONPATH
 ENV PYTHONPATH=/app
 
 CMD ["python", "ingestion.py"]

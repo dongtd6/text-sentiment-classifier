@@ -1,0 +1,21 @@
+# jobs/configs/config.yml
+postgres:
+  url: "jdbc:postgresql://postgresql.storage.svc.cluster.local:5432/crm_db"
+  #url: "jdbc:postgresql://localhost:5432/crm_db"
+  user: "pgadmin"
+  password: "pw123"
+  table: "product_reviews"
+
+s3:
+  endpoint: "http://minio-tenant-hl.storage.svc.cluster.local:9000"
+  #endpoint: "http://localhost:9000"
+  access_key: minio
+  secret_key: minio123
+  bucket: tsc-bucket
+
+predict:
+  api_url: "http://tsc.model-serving.svc.cluster.local:30000/predict_batch"
+  batch_size: 100
+metastore:
+  #ost: "thrift://hive-metastore.storage.svc.cluster.local:9083"
+  host: "thrift://localhost:9083"  
