@@ -2,9 +2,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.providers.cncf.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
-from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
+from kubernetes.client import V1Volume, V1VolumeMount, V1PersistentVolumeClaimVolumeSource
 
 # ----------------- CONFIGURATION -----------------
 # Secrets for Binance API
@@ -17,13 +15,10 @@ minio_secret_key = Secret('env', 'MINIO_ROOT_PASSWORD', 'minio-secret', 'secret_
 
 # Volume for sharing data between tasks
 # We use a PVC named 'airflow-shared-pvc' which should exist in your K8s
-volume_config = {
-    'persistentVolumeClaim': {
-        'claimName': 'airflow-shared-pvc'
-    }
-}
-volume = Volume(name='shared-data', configs=volume_config)
-volume_mount = VolumeMount('shared-data', mount_path='/shared_volume', sub_path=None, read_only=False)
+volume_config = V1PersistentVolumeClaimVolumeSource(claim_name='airflow-shared-pvc')
+volume = V1Volume(name='shared-data', persistent_volume_claim=volume_config)
+volume_mount = V1VolumeMount(name='shared-data', mount_path='/shared_volume', sub_path=None, read_only=False)
+
 
 default_args = {
     'owner': 'airflow',
