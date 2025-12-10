@@ -38,6 +38,8 @@ with DAG(
         image_pull_policy='Always',
         is_delete_operator_pod=True,
         get_logs=True,
+        in_cluster=True,
+        kubernetes_conn_id=None,
     )
 
     ingest_yesterday_task
