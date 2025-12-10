@@ -18,6 +18,7 @@ COPY dockerfiles/utils.py /app/utils.py
 COPY dockerfiles/data_ingestion.py /app/data_ingestion.py
 COPY dockerfiles/batch-processing/ingestion.py /app/ingestion.py
 COPY dockerfiles/batch-processing/bronze_job.py /app/bronze_job.py
+COPY dockerfiles/batch-processing/ingest_to_bronze.py /app/ingest_to_bronze.py
 
 # Copy common modules and configs
 COPY dockerfiles/batch-processing/common /app/common
