@@ -33,7 +33,7 @@ def main():
         
         # Fetch yesterday's data
         logging.info("Fetching trade history for yesterday...")
-        data = ingestion.get_yesterday()
+        data = ingestion.get_latest()
         logging.info(f"Successfully retrieved {len(data)} records.")
         
         # Save to Parquet
