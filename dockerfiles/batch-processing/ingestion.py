@@ -76,13 +76,32 @@ def process_and_write(spark, data_list):
             'advertisement_role': item.advertisement_role
         })
 
-    # 2. Create Spark DataFrame
-    df = spark.createDataFrame(rows)
+    # Define Explicit Schema to avoid [CANNOT_DETERMINE_TYPE] error
+    schema = StructType([
+        StructField("order_number", StringType(), True),
+        StructField("adv_no", StringType(), True),
+        StructField("trade_type", StringType(), True),
+        StructField("asset", StringType(), True),
+        StructField("fiat", StringType(), True),
+        StructField("fiat_symbol", StringType(), True),
+        StructField("amount", StringType(), True),
+        StructField("total_price", StringType(), True),
+        StructField("unit_price", StringType(), True),
+        StructField("order_status", StringType(), True),
+        StructField("create_time", LongType(), True), # Typically milliseconds
+        StructField("commission", StringType(), True),
+        StructField("counter_part_nick_name", StringType(), True),
+        StructField("advertisement_role", StringType(), True)
+    ])
+
+    # 2. Create Spark DataFrame with explicit schema
+    df = spark.createDataFrame(rows, schema=schema)
 
     # 3. Process (Add partitions)
     logger.info("Processing DataFrame...")
     
     if "create_time" in df.columns:
+        # Cast to Long just in case, though schema says Long
         df = df.withColumn("create_time", col("create_time").cast(LongType()))
         
         # Add partitions
