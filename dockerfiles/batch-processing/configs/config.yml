@@ -11,11 +11,11 @@ s3:
   #endpoint: "http://localhost:9000"
   access_key: minio
   secret_key: minio123
-  bucket: tsc-bucket
+  # Bucket is now dynamic (bronze/silver/gold) based on usage
 
 predict:
   api_url: "http://tsc.model-serving.svc.cluster.local:30000/predict_batch"
   batch_size: 100
 metastore:
-  #ost: "thrift://hive-metastore.storage.svc.cluster.local:9083"
-  host: "thrift://localhost:9083"  
+  host: "thrift://hive-metastore.storage.svc.cluster.local:9083"
+  #host: "thrift://localhost:9083"  
