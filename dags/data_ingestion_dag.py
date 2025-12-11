@@ -36,7 +36,7 @@ with DAG(
         cmds=["python", "ingestion.py"],
         secrets=[api_key_secret, api_secret_secret],
         image_pull_policy='Always',
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
         get_logs=True,
         in_cluster=True,
         kubernetes_conn_id=None,
