@@ -82,6 +82,10 @@ def start_of_week(dt: datetime) -> datetime:
     return (dt - timedelta(days=days_since_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
 
 
+def start_of_month(dt: datetime) -> datetime:
+    return dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+
 def previous_week_range(dt: datetime) -> Tuple[datetime, datetime]:
     sow = start_of_week(dt)
     start_prev = sow - timedelta(days=7)

@@ -16,6 +16,7 @@ from utils import (
     start_of_day,
     end_of_day,
     start_of_week,
+    start_of_month,
     previous_week_range,
     previous_month_range,
 )
@@ -133,6 +134,22 @@ class C2CExtended(C2C):
         start_of_week_dt = start_of_week(now)
 
         start_time = get_timestamp(start_of_week_dt)
+        end_time = get_timestamp(now)
+
+        return self._fetch_data(start_time, end_time)
+
+    def get_latest_by_month(self) -> List[GetC2CTradeHistoryResponseDataInner]:
+        """
+        Get trade history from start of current month to now in Vietnam timezone (UTC+7).
+        Includes both BUY and SELL trades.
+        
+        Returns:
+            List[GetC2CTradeHistoryResponseDataInner]: List of trade records
+        """
+        now = datetime.now(self.tz_vietnam)
+        start_of_month_dt = start_of_month(now)
+
+        start_time = get_timestamp(start_of_month_dt)
         end_time = get_timestamp(now)
 
         return self._fetch_data(start_time, end_time)
