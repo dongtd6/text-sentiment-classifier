@@ -2,15 +2,22 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install Java and curl (required for Spark)
+# Install Java (required for Spark)
 RUN apt-get update && \
     apt-get install -y default-jdk curl && \
     apt-get clean;
 
-# Download Hadoop AWS and AWS SDK JARs for S3 support ...
-RUN mkdir -p /jars && \
-    curl -o /jars/hadoop-aws-3.3.2.jar https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.2/hadoop-aws-3.3.2.jar && \
-    curl -o /jars/aws-java-sdk-bundle-1.11.1026.jar https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar
+# Create jars directory
+RUN mkdir -p /jars
+
+# Copy local JAR files for Spark and Hadoop
+COPY dockerfiles/batch-processing/jars/hadoop-aws-3.3.2.jar /jars/
+COPY dockerfiles/batch-processing/jars/postgresql-42.6.0.jar /jars/
+COPY dockerfiles/batch-processing/jars/deequ-2.0.3-spark-3.3.jar /jars/
+
+# Download AWS SDK Bundle (not in local jars)
+RUN curl -o /jars/aws-java-sdk-bundle-1.11.1026.jar \
+    https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar
 
 # Copy requirements
 COPY dockerfiles/requirements.txt .
