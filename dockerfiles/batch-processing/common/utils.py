@@ -55,6 +55,12 @@ def get_spark(app_name: str):
         .config("spark.hadoop.fs.s3a.secret.key", secret_key)
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")  # Disable SSL
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        # S3A timeout configurations (must be in milliseconds, not with time units)
+        .config("spark.hadoop.fs.s3a.connection.timeout", "200000")  # 200 seconds
+        .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")  # 60 seconds
+        .config("spark.hadoop.fs.s3a.attempts.maximum", "10")
+        .config("spark.hadoop.fs.s3a.connection.maximum", "15")
+        .config("spark.hadoop.fs.s3a.threads.max", "10")
     )
     spark = configure_spark_with_delta_pip(builder).enableHiveSupport().getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
