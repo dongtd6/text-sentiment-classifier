@@ -126,9 +126,8 @@ def process_and_write(spark, data_list):
     (
         df.write.format("delta")
         .mode("append")
-        .option("path", BRONZE_PATH)
         .partitionBy("year", "month", "day")
-        .saveAsTable(BRONZE_TABLE_NAME)
+        .save(BRONZE_PATH)
     )
     logger.info("✅ Write success!")
 

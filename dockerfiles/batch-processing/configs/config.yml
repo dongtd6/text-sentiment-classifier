@@ -7,7 +7,9 @@ postgres:
   table: "product_reviews"
 
 s3:
-  endpoint: "http://minio-tenant-hl.storage.svc.cluster.local:9000"
+  # Using the ClusterIP service 'minio' on port 80 which likely maps to 9000 inside
+  endpoint: "http://minio.storage.svc.cluster.local:80" 
+  # endpoint: "http://minio-tenant-hl.storage.svc.cluster.local:9000"
   #endpoint: "http://localhost:9000"
   access_key: minio
   secret_key: minio123
