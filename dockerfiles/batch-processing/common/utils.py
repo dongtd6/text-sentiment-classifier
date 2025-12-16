@@ -70,6 +70,10 @@ def get_spark(app_name: str):
         .config("spark.hadoop.fs.s3a.connection.timeout", "60000")
         .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")
         .config("spark.hadoop.fs.s3a.threads.keepalivetime", "60") # Only use integer
+        
+        # Fix for NumberFormatException: "24h"
+        # Override purge age with seconds (86400 = 24h) to avoid string parsing error
+        .config("spark.hadoop.fs.s3a.multipart.purge.age", "86400")
     )
     spark = configure_spark_with_delta_pip(builder).enableHiveSupport().getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
@@ -81,5 +85,7 @@ def get_spark(app_name: str):
     sc._jsc.hadoopConfiguration().set("fs.s3a.connection.establish.timeout", "60000")
     # Fix for ClassNotFoundException: EnvironmentVariableCredentialsProvider
     sc._jsc.hadoopConfiguration().set("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+    # Fix for "24h" error
+    sc._jsc.hadoopConfiguration().set("fs.s3a.multipart.purge.age", "86400")
     
     return spark

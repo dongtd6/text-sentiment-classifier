@@ -21,7 +21,8 @@ RUN curl -o /jars/aws-java-sdk-bundle-1.11.1026.jar \
 # Copy requirements
 COPY dockerfiles/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install pyspark delta-spark pyyaml
+# Pin Spark versions to ensure Scala 2.12 compatibility (matching Deequ/Hadoop jars)
+RUN pip install pyspark==3.5.3 delta-spark==3.2.0 pyyaml
 
 # Copy necessary scripts from root dockerfiles
 COPY dockerfiles/utils.py /app/utils.py
