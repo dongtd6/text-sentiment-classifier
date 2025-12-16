@@ -15,8 +15,8 @@ COPY dockerfiles/batch-processing/jars/ /jars/
 
 # Download AWS SDK Bundle (ensure this specific version matches what Hadoop expects if not provided locally)
 # If it's already in the jars folder, this might overwrite or be redundant, but safe to keep if unsure
-# RUN curl -o /jars/aws-java-sdk-bundle-1.11.1026.jar \
-#     https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar
+RUN curl -o /jars/aws-java-sdk-bundle-1.11.1026.jar \
+    https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar
 
 # Copy requirements
 COPY dockerfiles/requirements.txt .
