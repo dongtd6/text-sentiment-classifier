@@ -58,6 +58,11 @@ ENV SPARK_HOME=/opt/spark
 ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9.7-src.zip:/app
 ENV PATH=$SPARK_HOME/bin:$PATH
 
+# Create Ivy cache directory with proper permissions for spark user
+RUN mkdir -p /home/spark/.ivy2/cache && \
+    mkdir -p /home/spark/.ivy2/jars && \
+    chown -R spark:spark /home/spark/.ivy2
+
 # Switch back to spark user for security
 USER spark
 
