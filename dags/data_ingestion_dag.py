@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.providers.cncf.kubernetes.secret import Secret
+from kubernetes.client import models as k8s
 
 # Define where to fetch secrets from in Kubernetes
 # This maps the Kubernetes Secret 'airflow-producer-secret' key 'API_KEY' 
@@ -61,7 +62,7 @@ with DAG(
 
     # Task 3: Transform Silver to Gold and upload to GCS
     # NOTE: Processes ALL Silver data to build dimension tables and fact table
-    # GCS credentials are bundled in the Docker image (see Dockerfile)
+    # GCS credentials are mounted from Kubernetes Secret (secure, production-ready)
     gold_task = KubernetesPodOperator(
         task_id='gold_transformation',
         name='gold-transformation',
@@ -72,8 +73,23 @@ with DAG(
             "GCS_BUCKET": "binance-gold-bucket",  # UPDATE this with your actual GCS bucket name
             "GCS_PREFIX": "gold_backup",
             "GCS_WORKERS": "16",
-            "GCS_USE_THREADS": "false"  # false = ProcessPoolExecutor, true = ThreadPoolExecutor
+            "GCS_USE_THREADS": "false",  # false = ProcessPoolExecutor, true = ThreadPoolExecutor
+            "GOOGLE_APPLICATION_CREDENTIALS": "/secrets/google-auth.json"  # Path where secret is mounted
         },
+        # Mount GCS credentials from Kubernetes Secret
+        volumes=[
+            k8s.V1Volume(
+                name='gcs-credentials',
+                secret=k8s.V1SecretVolumeSource(secret_name='gcs-credentials')
+            )
+        ],
+        volume_mounts=[
+            k8s.V1VolumeMount(
+                name='gcs-credentials',
+                mount_path='/secrets',
+                read_only=True
+            )
+        ],
         image_pull_policy='Always',
         is_delete_operator_pod=True,
         get_logs=True,

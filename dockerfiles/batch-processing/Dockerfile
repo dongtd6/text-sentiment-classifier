@@ -54,11 +54,12 @@ COPY dockerfiles/batch-processing/configs /app/configs
 COPY dockerfiles/batch-processing/etl_jobs /app/etl_jobs
 
 # Option 1 (Development): Copy GCS credentials into image - NOT RECOMMENDED for production
-COPY dockerfiles/batch-processing/google-auth.json /app/google-auth.json
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/google-auth.json
+# COPY dockerfiles/batch-processing/google-auth.json /app/google-auth.json
+# ENV GOOGLE_APPLICATION_CREDENTIALS=/app/google-auth.json
 
 # Option 2 (Production): Mount GCS credentials from K8s secret at runtime
 # Secret will be mounted at /secrets/google-auth.json via Kubernetes volumeMount
+# GOOGLE_APPLICATION_CREDENTIALS will be set via DAG env_vars
 
 # Set environment variables
 ENV SPARK_HOME=/opt/spark
