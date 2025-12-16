@@ -29,10 +29,13 @@ COPY dockerfiles/batch-processing/jars/*.jar /opt/spark/jars/
 # Copy requirements file
 COPY dockerfiles/requirements.txt .
 
+# Install uv (fast Python package installer)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:$PATH"
+
 # Install Python dependencies (apache/spark image already has PySpark 3.4.1)
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt && \
-    pip install delta-spark==2.4.0 pyyaml minio
+RUN uv pip install --system -r requirements.txt && \
+    uv pip install --system delta-spark==2.4.0 pyyaml minio
 
 # Copy necessary scripts from root dockerfiles
 COPY dockerfiles/utils.py /app/utils.py
