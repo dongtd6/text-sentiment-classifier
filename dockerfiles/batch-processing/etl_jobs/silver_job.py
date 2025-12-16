@@ -3,6 +3,7 @@ import sys
 import logging
 from decimal import Decimal
 from typing import Optional
+from datetime import datetime, timedelta
 
 sys.path.append("/app")
 
@@ -25,8 +26,12 @@ BRONZE_PATH = os.getenv("BRONZE_PATH", "s3a://bronze/c2c_trades/")
 SILVER_PATH = os.getenv("SILVER_PATH", "s3a://silver/c2c_trades/")
 APP_NAME = "C2CSilverJob"
 
+# Date filter: process yesterday's data by default (can be overridden by env var)
+DATE_FILTER = os.getenv("DATE_FILTER", None)
+
 logger.info(f"BRONZE_PATH={BRONZE_PATH}")
 logger.info(f"SILVER_PATH={SILVER_PATH}")
+logger.info(f"DATE_FILTER={DATE_FILTER}")
 
 # ========================= STATUS PRIORITY MAP =========================
 PRIORITY_MAP = {
@@ -195,9 +200,47 @@ def main():
         spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
         
         logger.info(f"Reading Bronze data from {BRONZE_PATH}")
-        df = spark.read.format("delta").load(BRONZE_PATH)
         
-        logger.info(f"Bronze DataFrame count: {df.count()}")
+        # Determine processing mode based on DATE_FILTER env var
+        if DATE_FILTER:
+            if DATE_FILTER.lower() == "yesterday":
+                # Incremental mode: process yesterday's data only
+                target_date = datetime.now() - timedelta(days=1)
+                target_year = target_date.year
+                target_month = target_date.month
+                target_day = target_date.day
+                
+                logger.info(f"📅 INCREMENTAL MODE: Processing yesterday's data ({target_date.date()})")
+                df = (spark.read.format("delta")
+                      .load(BRONZE_PATH)
+                      .filter((col("year") == target_year) & 
+                              (col("month") == target_month) & 
+                              (col("day") == target_day)))
+            else:
+                # Process specific date (format: YYYY-MM-DD)
+                target_date = datetime.strptime(DATE_FILTER, "%Y-%m-%d")
+                target_year = target_date.year
+                target_month = target_date.month
+                target_day = target_date.day
+                
+                logger.info(f"📅 SPECIFIC DATE MODE: Processing data for {target_date.date()}")
+                df = (spark.read.format("delta")
+                      .load(BRONZE_PATH)
+                      .filter((col("year") == target_year) & 
+                              (col("month") == target_month) & 
+                              (col("day") == target_day)))
+        else:
+            # Full mode: process ALL Bronze data (for initial run / backfill)
+            logger.info(f"🔄 FULL MODE: Processing ALL Bronze data (initial run / backfill)")
+            df = spark.read.format("delta").load(BRONZE_PATH)
+        
+        record_count = df.count()
+        logger.info(f"Bronze DataFrame count: {record_count}")
+        
+        if record_count == 0:
+            logger.warning(f"No data found in Bronze. Exiting.")
+            return
+        
         df.printSchema()
         
         # Transform

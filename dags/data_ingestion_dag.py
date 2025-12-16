@@ -41,12 +41,15 @@ with DAG(
     )
 
     # Task 2: Transform Bronze to Silver
+    # NOTE: By default (no env vars), processes ALL Bronze data (for initial run)
+    # To enable daily incremental mode later, uncomment the env line below:
     silver_task = KubernetesPodOperator(
         task_id='silver_transformation',
         name='silver-transformation',
         namespace='orchestration',
         image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
         cmds=["python3", "etl_jobs/silver_job.py"],
+        # env_vars={"DATE_FILTER": "yesterday"},  # Uncomment for daily incremental mode
         image_pull_policy='Always',
         is_delete_operator_pod=True,
         get_logs=True,
