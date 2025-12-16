@@ -30,9 +30,9 @@ COPY dockerfiles/batch-processing/jars/*.jar /opt/spark/jars/
 COPY dockerfiles/requirements.txt .
 
 # Install Python dependencies (apache/spark image already has PySpark 3.4.1)
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir delta-spark==2.4.0 pyyaml minio
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    pip install delta-spark==2.4.0 pyyaml minio
 
 # Copy necessary scripts from root dockerfiles
 COPY dockerfiles/utils.py /app/utils.py
