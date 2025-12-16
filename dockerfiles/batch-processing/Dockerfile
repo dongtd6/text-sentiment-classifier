@@ -14,6 +14,7 @@ RUN apt-get update && \
     apt-get update && \
     apt-get install -y python3.9 python3.9-dev python3.9-venv python3-pip && \
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1 && \
+    ln -sf /usr/bin/python3.9 /usr/bin/python && \
     rm -rf /var/lib/apt/lists/*
 
 # Create jars directory and download required JARs for MinIO/S3A and Delta Lake
