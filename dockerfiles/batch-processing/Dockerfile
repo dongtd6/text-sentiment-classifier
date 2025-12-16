@@ -31,7 +31,7 @@ COPY dockerfiles/requirements.txt .
 
 # Install uv (fast Python package installer)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:$PATH"
+ENV PATH="/root/.local/bin:$PATH"
 
 # Install Python dependencies (apache/spark image already has PySpark 3.4.1)
 RUN uv pip install --system -r requirements.txt && \
