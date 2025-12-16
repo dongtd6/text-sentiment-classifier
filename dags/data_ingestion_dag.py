@@ -73,7 +73,7 @@ with DAG(
             "GCS_BUCKET": "binance-gold-bucket",  # UPDATE this with your actual GCS bucket name
             "GCS_PREFIX": "gold_backup",
             "GCS_WORKERS": "16",
-            "GCS_USE_THREADS": "false",  # false = ProcessPoolExecutor, true = ThreadPoolExecutor
+            "GCS_USE_THREADS": "true",  # true = ThreadPoolExecutor (recommended for I/O-bound GCS uploads)
             "GOOGLE_APPLICATION_CREDENTIALS": "/secrets/google-auth.json"  # Path where secret is mounted
         },
         # Mount GCS credentials from Kubernetes Secret

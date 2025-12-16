@@ -112,10 +112,15 @@ class GCSManager:
         bucket_name: str,
         destination_prefix: str = "",
         workers: int = 16,
-        use_threads: bool = False
+        use_threads: bool = True  # Default to True (threads work better with GCS client)
     ):
         """
-        Upload entire nested directory tree in parallel.
+        Upload entire nested directory tree in parallel using ThreadPoolExecutor.
+        
+        Note: ThreadPoolExecutor is used instead of ProcessPoolExecutor because:
+        1. GCS client object cannot be pickled across processes
+        2. Threads are sufficient for I/O-bound operations like uploads
+        3. Avoids pickle errors with nested functions
         """
         bucket = self.client.bucket(bucket_name)
         
@@ -140,21 +145,21 @@ class GCSManager:
             logger.warning("No files discovered to upload.")
             return 0
         
-        logger.info(f"Starting parallel upload with {workers} workers...")
+        logger.info(f"Starting parallel upload with {workers} workers (ThreadPoolExecutor)...")
         
-        # Parallel upload
-        from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+        # Parallel upload with ThreadPoolExecutor (I/O-bound operations)
+        from concurrent.futures import ThreadPoolExecutor
         
         def _upload_one(job):
             local_file, blob_name = job
             blob = bucket.blob(blob_name)
             blob.upload_from_filename(local_file)
+            logger.debug(f"✔ Uploaded {blob_name}")
             return blob_name
         
-        Executor = ThreadPoolExecutor if use_threads else ProcessPoolExecutor
         jobs = list(zip(file_paths, blob_paths))
         
-        with Executor(max_workers=workers) as executor:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
             results = list(executor.map(_upload_one, jobs))
         
         logger.info(f"Parallel upload completed: {len(results)} files → gs://{bucket_name}/{destination_prefix}/")
