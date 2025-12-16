@@ -18,7 +18,7 @@ default_args = {
 with DAG(
     dag_id='data_ingestion_dag',
     default_args=default_args,
-    description='DAG for Binance C2C data ingestion and Bronze/Silver processing',
+    description='DAG for Binance C2C data ingestion and Bronze/Silver/Gold processing',
     start_date=datetime(2023, 1, 1),
     schedule='@daily',
     catchup=False,
@@ -42,15 +42,38 @@ with DAG(
     # )
 
     # Task 2: Transform Bronze to Silver
+    # COMMENTED OUT: Silver data already processed, no need to re-run
     # NOTE: By default (no env vars), processes ALL Bronze data (for initial run)
     # To enable daily incremental mode later, uncomment the env line below:
-    silver_task = KubernetesPodOperator(
-        task_id='silver_transformation',
-        name='silver-transformation',
+    # silver_task = KubernetesPodOperator(
+    #     task_id='silver_transformation',
+    #     name='silver-transformation',
+    #     namespace='orchestration',
+    #     image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
+    #     cmds=["python3", "etl_jobs/silver_job.py"],
+    #     # env_vars={"DATE_FILTER": "yesterday"},  # Uncomment for daily incremental mode
+    #     image_pull_policy='Always',
+    #     is_delete_operator_pod=True,
+    #     get_logs=True,
+    #     in_cluster=True,
+    #     kubernetes_conn_id=None,
+    # )
+
+    # Task 3: Transform Silver to Gold and upload to GCS
+    # NOTE: Processes ALL Silver data to build dimension tables and fact table
+    # GCS credentials are bundled in the Docker image (see Dockerfile)
+    gold_task = KubernetesPodOperator(
+        task_id='gold_transformation',
+        name='gold-transformation',
         namespace='orchestration',
         image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
-        cmds=["python3", "etl_jobs/silver_job.py"],
-        # env_vars={"DATE_FILTER": "yesterday"},  # Uncomment for daily incremental mode
+        cmds=["python3", "etl_jobs/gold_job.py"],
+        env_vars={
+            "GCS_BUCKET": "binance-gold-bucket",  # UPDATE this with your actual GCS bucket name
+            "GCS_PREFIX": "gold_backup",
+            "GCS_WORKERS": "16",
+            "GCS_USE_THREADS": "false"  # false = ProcessPoolExecutor, true = ThreadPoolExecutor
+        },
         image_pull_policy='Always',
         is_delete_operator_pod=True,
         get_logs=True,
@@ -59,6 +82,6 @@ with DAG(
     )
 
     # Define task dependencies
-    # bronze_task >> silver_task  # Commented out since bronze_task is disabled
-    silver_task  # Run silver_task standalone (bronze data already exists)
+    # bronze_task >> silver_task >> gold_task  # Full pipeline (all commented for now)
+    gold_task  # Run gold_task standalone (bronze & silver data already exist)
 

@@ -40,7 +40,7 @@ ENV PATH="/root/.local/bin:$PATH"
 
 # Install Python dependencies (apache/spark image already has PySpark 3.4.1)
 RUN uv pip install --system -r requirements.txt && \
-    uv pip install --system delta-spark==2.4.0 pyyaml minio
+    uv pip install --system delta-spark==2.4.0 pyyaml minio google-cloud-storage
 
 # Copy necessary scripts from root dockerfiles
 COPY dockerfiles/utils.py /app/utils.py
@@ -52,6 +52,13 @@ COPY dockerfiles/batch-processing/configs /app/configs
 
 # Copy ETL jobs
 COPY dockerfiles/batch-processing/etl_jobs /app/etl_jobs
+
+# Option 1 (Development): Copy GCS credentials into image - NOT RECOMMENDED for production
+COPY dockerfiles/batch-processing/google-auth.json /app/google-auth.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/google-auth.json
+
+# Option 2 (Production): Mount GCS credentials from K8s secret at runtime
+# Secret will be mounted at /secrets/google-auth.json via Kubernetes volumeMount
 
 # Set environment variables
 ENV SPARK_HOME=/opt/spark
