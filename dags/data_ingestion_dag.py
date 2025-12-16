@@ -18,28 +18,41 @@ default_args = {
 with DAG(
     dag_id='data_ingestion_dag',
     default_args=default_args,
-    description='DAG for Binance C2C data ingestion',
+    description='DAG for Binance C2C data ingestion and Bronze/Silver processing',
     start_date=datetime(2023, 1, 1),
     schedule='@daily',
     catchup=False,
-    tags=['ingestion', 'binance']
+    tags=['ingestion', 'binance', 'lakehouse']
 ) as dag:
 
-    # Task to ingest yesterday's data
-    ingest_yesterday_task = KubernetesPodOperator(
-        task_id='ingest_yesterday_data',
-        name='ingest-yesterday-data',
+    # Task 1: Ingest data from API and write to Bronze
+    bronze_task = KubernetesPodOperator(
+        task_id='bronze_ingestion',
+        name='bronze-ingestion',
         namespace='orchestration',
-        # Use the image built from dockerfiles/batch-processing/Dockerfile
         image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
-        # Now we can just run the script directly from the etl_jobs directory
-        cmds=["python", "etl_jobs/ingestion.py"],
+        cmds=["python3", "etl_jobs/ingestion.py"],
         secrets=[api_key_secret, api_secret_secret],
         image_pull_policy='Always',
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
         get_logs=True,
         in_cluster=True,
         kubernetes_conn_id=None,
     )
 
-    ingest_yesterday_task
+    # Task 2: Transform Bronze to Silver
+    silver_task = KubernetesPodOperator(
+        task_id='silver_transformation',
+        name='silver-transformation',
+        namespace='orchestration',
+        image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
+        cmds=["python3", "etl_jobs/silver_job.py"],
+        image_pull_policy='Always',
+        is_delete_operator_pod=True,
+        get_logs=True,
+        in_cluster=True,
+        kubernetes_conn_id=None,
+    )
+
+    # Define task dependencies
+    bronze_task >> silver_task
