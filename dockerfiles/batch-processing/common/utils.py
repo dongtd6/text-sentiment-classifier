@@ -10,7 +10,7 @@ CONFIG_PATH = os.path.join(BASE_DIR, "configs", "config.yml")
 with open(CONFIG_PATH) as f:
     cfg = yaml.safe_load(f)
 
-JARS_DIR = "/jars"  # JARs are at /jars in the image
+JARS_DIR = "/opt/spark/jars"  # JARs are in /opt/spark/jars in apache/spark image
 
 # Explicitly list JARs to be sure we pick the right ones
 jars = [
@@ -18,9 +18,8 @@ jars = [
     os.path.join(JARS_DIR, "deequ-2.0.3-spark-3.3.jar"),
     os.path.join(JARS_DIR, "hadoop-aws-3.3.4.jar"),
     os.path.join(JARS_DIR, "aws-java-sdk-bundle-1.12.262.jar"),
-    # Include Delta JARs explicitly if needed, but configure_spark_with_delta_pip handles it
-    # os.path.join(JARS_DIR, "delta-core_2.12-2.4.0.jar"),
-    # os.path.join(JARS_DIR, "delta-storage-2.4.0.jar"),
+    os.path.join(JARS_DIR, "delta-core_2.12-2.4.0.jar"),
+    os.path.join(JARS_DIR, "delta-storage-2.4.0.jar"),
 ]
 
 jars_str = ",".join(jars)
@@ -54,8 +53,8 @@ def get_spark(app_name: str):
         # S3 config
         .config("spark.jars", jars_str)
         # Use existing SparkContext's loaded JARs if not found in path
-        .config("spark.driver.extraClassPath", "/jars/*")
-        .config("spark.executor.extraClassPath", "/jars/*")
+        .config("spark.driver.extraClassPath", f"{JARS_DIR}/*")
+        .config("spark.executor.extraClassPath", f"{JARS_DIR}/*")
         
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.hadoop.fs.s3a.endpoint", endpoint)
@@ -81,12 +80,23 @@ def get_spark(app_name: str):
     
     # Explicitly set Hadoop configuration to ensure correct types and providers
     sc = spark.sparkContext
+    hadoop_conf = sc._jsc.hadoopConfiguration()
+    
     # Fix for [CANNOT_DETERMINE_TYPE] or NumberFormatException with time units
-    sc._jsc.hadoopConfiguration().set("fs.s3a.connection.timeout", "60000")
-    sc._jsc.hadoopConfiguration().set("fs.s3a.connection.establish.timeout", "60000")
+    hadoop_conf.set("fs.s3a.connection.timeout", "60000")
+    hadoop_conf.set("fs.s3a.connection.establish.timeout", "60000")
+    
     # Fix for ClassNotFoundException: EnvironmentVariableCredentialsProvider
-    sc._jsc.hadoopConfiguration().set("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+    hadoop_conf.set("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+    
     # Fix for "24h" error
-    sc._jsc.hadoopConfiguration().set("fs.s3a.multipart.purge.age", "86400")
+    hadoop_conf.set("fs.s3a.multipart.purge.age", "86400")
+    
+    # Additional S3A settings for stability with MinIO
+    hadoop_conf.set("fs.s3a.endpoint", endpoint)
+    hadoop_conf.set("fs.s3a.access.key", access_key)
+    hadoop_conf.set("fs.s3a.secret.key", secret_key)
+    hadoop_conf.set("fs.s3a.path.style.access", "true")
+    hadoop_conf.set("fs.s3a.connection.ssl.enabled", "false")
     
     return spark
