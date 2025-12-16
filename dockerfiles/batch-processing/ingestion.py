@@ -44,9 +44,8 @@ def get_c2c_data_yesterday():
     
     client = C2CExtended(config)
     logger.info("Fetching trade history for yesterday...")
-    # Using get_latest() based on requirement. 
-    # For exact yesterday data, ensure this method returns correct time range or use get_yesterday()
-    data = client.get_latest_by_month() 
+    # Using get_latest_by_month() based on manual change requirement
+    data = client.get_latest_by_month()
     logger.info(f"Successfully retrieved {len(data)} records from API.")
     return data
 
