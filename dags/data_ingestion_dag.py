@@ -26,19 +26,20 @@ with DAG(
 ) as dag:
 
     # Task 1: Ingest data from API and write to Bronze
-    bronze_task = KubernetesPodOperator(
-        task_id='bronze_ingestion',
-        name='bronze-ingestion',
-        namespace='orchestration',
-        image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
-        cmds=["python3", "etl_jobs/ingestion.py"],
-        secrets=[api_key_secret, api_secret_secret],
-        image_pull_policy='Always',
-        is_delete_operator_pod=True,
-        get_logs=True,
-        in_cluster=True,
-        kubernetes_conn_id=None,
-    )
+    # COMMENTED OUT: Bronze data already ingested, no need to re-run
+    # bronze_task = KubernetesPodOperator(
+    #     task_id='bronze_ingestion',
+    #     name='bronze-ingestion',
+    #     namespace='orchestration',
+    #     image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
+    #     cmds=["python3", "etl_jobs/ingestion.py"],
+    #     secrets=[api_key_secret, api_secret_secret],
+    #     image_pull_policy='Always',
+    #     is_delete_operator_pod=True,
+    #     get_logs=True,
+    #     in_cluster=True,
+    #     kubernetes_conn_id=None,
+    # )
 
     # Task 2: Transform Bronze to Silver
     # NOTE: By default (no env vars), processes ALL Bronze data (for initial run)
@@ -58,4 +59,6 @@ with DAG(
     )
 
     # Define task dependencies
-    bronze_task >> silver_task
+    # bronze_task >> silver_task  # Commented out since bronze_task is disabled
+    silver_task  # Run silver_task standalone (bronze data already exists)
+
