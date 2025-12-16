@@ -12,11 +12,14 @@ with open(CONFIG_PATH) as f:
 
 JARS_DIR = os.path.join(os.path.dirname(BASE_DIR), "jars")  # /job/jars
 
+# JARs from local directory
 jars = [
     os.path.join(JARS_DIR, "postgresql-42.6.0.jar"),
     os.path.join(JARS_DIR, "deequ-2.0.3-spark-3.3.jar"),
     os.path.join(JARS_DIR, "hadoop-aws-3.3.2.jar"),
-    os.path.join(JARS_DIR, "aws-java-sdk-bundle-1.11.1026.jar"),
+    # IMPORTANT: aws-java-sdk-bundle must be present.
+    # If using local file, ensure it exists in /jars/
+    os.path.join(JARS_DIR, "aws-java-sdk-bundle-1.11.1026.jar"), 
 ]
 
 jars_str = ",".join(jars)
@@ -49,6 +52,10 @@ def get_spark(app_name: str):
         )
         # S3 config
         .config("spark.jars", jars_str)
+        # Use existing SparkContext's loaded JARs if not found in path
+        .config("spark.driver.extraClassPath", "/jars/*")
+        .config("spark.executor.extraClassPath", "/jars/*")
+        
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.hadoop.fs.s3a.endpoint", endpoint)
         .config("spark.hadoop.fs.s3a.access.key", access_key)

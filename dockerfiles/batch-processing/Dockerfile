@@ -36,5 +36,6 @@ COPY dockerfiles/batch-processing/etl_jobs /app/etl_jobs
 
 # PYTHONPATH
 ENV PYTHONPATH=/app
+ENV SPARK_CLASSPATH="/jars/*"
 
 CMD ["python", "etl_jobs/ingestion.py"]
