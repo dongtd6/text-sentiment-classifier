@@ -10,32 +10,31 @@ RUN apt-get update && \
 # Create jars directory
 RUN mkdir -p /jars
 
-# Copy local JAR files for Spark and Hadoop
-COPY dockerfiles/batch-processing/jars/hadoop-aws-3.3.2.jar /jars/
-COPY dockerfiles/batch-processing/jars/postgresql-42.6.0.jar /jars/
-COPY dockerfiles/batch-processing/jars/deequ-2.0.3-spark-3.3.jar /jars/
+# Copy all JAR files from the local directory
+COPY dockerfiles/batch-processing/jars/ /jars/
 
-# Download AWS SDK Bundle (not in local jars)
-RUN curl -o /jars/aws-java-sdk-bundle-1.11.1026.jar \
-    https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar
+# Download AWS SDK Bundle (ensure this specific version matches what Hadoop expects if not provided locally)
+# If it's already in the jars folder, this might overwrite or be redundant, but safe to keep if unsure
+# RUN curl -o /jars/aws-java-sdk-bundle-1.11.1026.jar \
+#     https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar
 
 # Copy requirements
 COPY dockerfiles/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install pyspark delta-spark pyyaml
 
-# Copy necessary scripts
+# Copy necessary scripts from root dockerfiles
 COPY dockerfiles/utils.py /app/utils.py
 COPY dockerfiles/data_ingestion.py /app/data_ingestion.py
-
-# Copy the main ingestion script (which now handles bronze logic too)
-COPY dockerfiles/batch-processing/ingestion.py /app/ingestion.py
 
 # Copy common modules and configs
 COPY dockerfiles/batch-processing/common /app/common
 COPY dockerfiles/batch-processing/configs /app/configs
 
+# Copy ETL jobs
+COPY dockerfiles/batch-processing/etl_jobs /app/etl_jobs
+
 # PYTHONPATH
 ENV PYTHONPATH=/app
 
-CMD ["python", "ingestion.py"]
+CMD ["python", "etl_jobs/ingestion.py"]

@@ -55,6 +55,9 @@ def get_spark(app_name: str):
         .config("spark.hadoop.fs.s3a.secret.key", secret_key)
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")  # Disable SSL
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        # FORCE SimpleAWSCredentialsProvider to prevent looking for V2 classes
+        .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+        
         # S3A Timeout and Threads - Critical Fix for NumberFormatException
         # Set values as integers (milliseconds), overriding any '60s' defaults
         .config("spark.hadoop.fs.s3a.connection.timeout", "60000")
@@ -64,10 +67,12 @@ def get_spark(app_name: str):
     spark = configure_spark_with_delta_pip(builder).enableHiveSupport().getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
     
-    # Explicitly set Hadoop configuration to ensure correct types
+    # Explicitly set Hadoop configuration to ensure correct types and providers
     sc = spark.sparkContext
     # Fix for [CANNOT_DETERMINE_TYPE] or NumberFormatException with time units
     sc._jsc.hadoopConfiguration().set("fs.s3a.connection.timeout", "60000")
     sc._jsc.hadoopConfiguration().set("fs.s3a.connection.establish.timeout", "60000")
+    # Fix for ClassNotFoundException: EnvironmentVariableCredentialsProvider
+    sc._jsc.hadoopConfiguration().set("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
     
     return spark

@@ -32,8 +32,8 @@ with DAG(
         namespace='orchestration',
         # Use the image built from dockerfiles/batch-processing/Dockerfile
         image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
-        # Now we can just run the script directly since it's the CMD/Entrypoint or available in path
-        cmds=["python", "ingestion.py"],
+        # Now we can just run the script directly from the etl_jobs directory
+        cmds=["python", "etl_jobs/ingestion.py"],
         secrets=[api_key_secret, api_secret_secret],
         image_pull_policy='Always',
         is_delete_operator_pod=False,
