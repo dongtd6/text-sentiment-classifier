@@ -7,9 +7,13 @@ USER root
 
 WORKDIR /app
 
-# Install system dependencies (curl for downloading JARs if needed)
+# Install Python 3.9 (binance-sdk-c2c requires Python>=3.9, but image has 3.8)
 RUN apt-get update && \
-    apt-get install -y curl && \
+    apt-get install -y software-properties-common curl && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y python3.9 python3.9-dev python3.9-venv python3-pip && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1 && \
     rm -rf /var/lib/apt/lists/*
 
 # Create jars directory and download required JARs for MinIO/S3A and Delta Lake
