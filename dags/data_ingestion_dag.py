@@ -60,21 +60,58 @@ with DAG(
     #     kubernetes_conn_id=None,
     # )
 
-    # Task 3: Transform Silver to Gold and upload to GCS
-    # NOTE: Processes ALL Silver data to build dimension tables and fact table
-    # GCS credentials are mounted from Kubernetes Secret (secure, production-ready)
-    gold_task = KubernetesPodOperator(
-        task_id='gold_transformation',
-        name='gold-transformation',
+    # Task 3a: Transform Silver to Gold (Aggregated) - OLD VERSION
+    # COMMENTED OUT: Using V1 (transaction-level) instead
+    # gold_task = KubernetesPodOperator(
+    #     task_id='gold_transformation',
+    #     name='gold-transformation',
+    #     namespace='orchestration',
+    #     image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
+    #     cmds=["python3", "etl_jobs/gold_job.py"],
+    #     env_vars={
+    #         "GCS_BUCKET": "binance-gold-bucket",
+    #         "GCS_PREFIX": "gold_backup",
+    #         "GCS_WORKERS": "16",
+    #         "GCS_USE_THREADS": "true",
+    #         "GOOGLE_APPLICATION_CREDENTIALS": "/secrets/google-auth.json"
+    #     },
+    #     volumes=[
+    #         k8s.V1Volume(
+    #             name='gcs-credentials',
+    #             secret=k8s.V1SecretVolumeSource(secret_name='gcs-credentials')
+    #         )
+    #     ],
+    #     volume_mounts=[
+    #         k8s.V1VolumeMount(
+    #             name='gcs-credentials',
+    #             mount_path='/secrets',
+    #             read_only=True
+    #         )
+    #     ],
+    #     image_pull_policy='Always',
+    #     is_delete_operator_pod=True,
+    #     get_logs=True,
+    #     in_cluster=True,
+    #     kubernetes_conn_id=None,
+    # )
+
+    # Task 3b: Transform Silver to Gold V1 (Transaction-Level Fact)
+    # NOTE: Transaction-level fact table (NO aggregation)
+    # - PK: order_number
+    # - Includes dim_order_status
+    # - User calculates metrics in dashboard
+    gold_task_v1 = KubernetesPodOperator(
+        task_id='gold_transformation_v1',
+        name='gold-transformation-v1',
         namespace='orchestration',
         image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/batch-app:latest',
-        cmds=["python3", "etl_jobs/gold_job.py"],
+        cmds=["python3", "etl_jobs/gold_job_v1.py"],
         env_vars={
-            "GCS_BUCKET": "binance-gold-bucket",  # UPDATE this with your actual GCS bucket name
-            "GCS_PREFIX": "gold_backup",
+            "GCS_BUCKET": "binance-gold-bucket",
+            "GCS_PREFIX": "gold_v1_backup",  # Different prefix to separate V0 and V1
             "GCS_WORKERS": "16",
-            "GCS_USE_THREADS": "true",  # true = ThreadPoolExecutor (recommended for I/O-bound GCS uploads)
-            "GOOGLE_APPLICATION_CREDENTIALS": "/secrets/google-auth.json"  # Path where secret is mounted
+            "GCS_USE_THREADS": "true",
+            "GOOGLE_APPLICATION_CREDENTIALS": "/secrets/google-auth.json"
         },
         # Mount GCS credentials from Kubernetes Secret
         volumes=[
@@ -98,6 +135,6 @@ with DAG(
     )
 
     # Define task dependencies
-    # bronze_task >> silver_task >> gold_task  # Full pipeline (all commented for now)
-    gold_task  # Run gold_task standalone (bronze & silver data already exist)
+    # bronze_task >> silver_task >> gold_task_v1  # Full pipeline (all commented for now)
+    gold_task_v1  # Run gold_task_v1 standalone (bronze & silver data already exist)
 
