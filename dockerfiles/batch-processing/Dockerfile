@@ -10,19 +10,25 @@ RUN apt-get update && \
 # Create jars directory
 RUN mkdir -p /jars
 
-# Copy all JAR files from the local directory
+# Copy all JAR files from the local directory (includes delta jars, deequ, etc.)
 COPY dockerfiles/batch-processing/jars/ /jars/
 
-# Download AWS SDK Bundle (ensure this specific version matches what Hadoop expects if not provided locally)
-# If it's already in the jars folder, this might overwrite or be redundant, but safe to keep if unsure
-RUN curl -o /jars/aws-java-sdk-bundle-1.11.1026.jar \
-    https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar
+# Download Hadoop AWS and AWS SDK Bundle compatible with Spark 3.4.1 (Hadoop 3.3.4)
+# Overwriting or adding to what might be in local jars
+RUN curl -o /jars/hadoop-aws-3.3.4.jar \
+    https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar
+
+RUN curl -o /jars/aws-java-sdk-bundle-1.12.262.jar \
+    https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.262/aws-java-sdk-bundle-1.12.262.jar
+
+# Remove potentially conflicting older versions if they exist from COPY
+RUN rm -f /jars/hadoop-aws-3.3.2.jar /jars/aws-java-sdk-bundle-1.11.1026.jar
 
 # Copy requirements
 COPY dockerfiles/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-# Pin Spark versions to ensure Scala 2.12 compatibility (matching Deequ/Hadoop jars)
-RUN pip install pyspark==3.5.3 delta-spark==3.2.0 pyyaml
+# Downgrade to match user's working local setup and existing Delta jars (2.4.0)
+RUN pip install pyspark==3.4.1 delta-spark==2.4.0 pyyaml
 
 # Copy necessary scripts from root dockerfiles
 COPY dockerfiles/utils.py /app/utils.py

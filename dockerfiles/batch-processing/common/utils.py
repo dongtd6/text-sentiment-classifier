@@ -10,16 +10,17 @@ CONFIG_PATH = os.path.join(BASE_DIR, "configs", "config.yml")
 with open(CONFIG_PATH) as f:
     cfg = yaml.safe_load(f)
 
-JARS_DIR = os.path.join(os.path.dirname(BASE_DIR), "jars")  # /job/jars
+JARS_DIR = "/jars"  # JARs are at /jars in the image
 
-# JARs from local directory
+# Explicitly list JARs to be sure we pick the right ones
 jars = [
     os.path.join(JARS_DIR, "postgresql-42.6.0.jar"),
     os.path.join(JARS_DIR, "deequ-2.0.3-spark-3.3.jar"),
-    os.path.join(JARS_DIR, "hadoop-aws-3.3.2.jar"),
-    # IMPORTANT: aws-java-sdk-bundle must be present.
-    # If using local file, ensure it exists in /jars/
-    os.path.join(JARS_DIR, "aws-java-sdk-bundle-1.11.1026.jar"), 
+    os.path.join(JARS_DIR, "hadoop-aws-3.3.4.jar"),
+    os.path.join(JARS_DIR, "aws-java-sdk-bundle-1.12.262.jar"),
+    # Include Delta JARs explicitly if needed, but configure_spark_with_delta_pip handles it
+    # os.path.join(JARS_DIR, "delta-core_2.12-2.4.0.jar"),
+    # os.path.join(JARS_DIR, "delta-storage-2.4.0.jar"),
 ]
 
 jars_str = ",".join(jars)
