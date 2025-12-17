@@ -175,7 +175,7 @@ class C2CDataStreaming:
         insert_query = """
             INSERT INTO c2c.trades (
                 order_number, adv_no, trade_type, asset, fiat, fiat_symbol,
-                amount, total_price, unit_price, order_status, create_time_ms,
+                amount, total_price, unit_price, order_status, create_time,
                 commission, counter_part_nick_name, advertisement_role
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
@@ -184,6 +184,9 @@ class C2CDataStreaming:
         """
         
         try:
+            raw_ct = getattr(trade, "create_time_ms", None) \
+                or getattr(trade, "create_time", None) \
+                or getattr(trade, "timestamp", None)
             values = (
                 trade.order_number,
                 trade.adv_no,
@@ -195,7 +198,7 @@ class C2CDataStreaming:
                 float(trade.total_price) if trade.total_price else 0,
                 float(trade.unit_price) if trade.unit_price else 0,
                 trade.order_status,
-                int(trade.create_time_ms) if trade.create_time_ms else None,
+                int(raw_ct) if raw_ct else None,
                 float(trade.commission) if trade.commission else 0,
                 trade.counter_part_nick_name,
                 trade.advertisement_role
