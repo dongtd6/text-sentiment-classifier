@@ -7,6 +7,7 @@ Fetches historical trading data from Binance C2C API and inserts into PostgreSQL
 import os
 import sys
 import logging
+import time
 import psycopg2
 import requests
 from datetime import datetime
@@ -231,6 +232,9 @@ class C2CDataStreaming:
                         inserted_count += 1
                     else:
                         skipped_count += 1
+                    
+                    # Sleep 10 seconds after each insert
+                    time.sleep(10)
                     
                     # Log progress every 100 records
                     if i % 100 == 0:
