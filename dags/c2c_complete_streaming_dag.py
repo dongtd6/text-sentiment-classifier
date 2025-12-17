@@ -79,18 +79,19 @@ with DAG(
         cmds=["python3", "/app/c2c_data_streaming.py"],
         env_vars={
             "FETCH_MODE": "latest",  # Fetch latest data (current day)
-            "DB_HOST": "postgresql.storage.svc.cluster.local",
+            "DB_HOST": "airflow-postgresql.orchestration.svc.cluster.local",
             "DB_PORT": "5432",
-            "DB_NAME": "postgres",
-            "DB_USER": "pgadmin"
+            "DB_NAME": "c2c_trade",
+            "DB_USER": "postgres"
         },
         secrets=[
-            api_key_secret, 
-            api_secret_secret, 
+            api_key_secret,
+            api_secret_secret,
             db_password_secret,
             telegram_bot_token_secret,
             telegram_chat_id_secret
         ],
+        startup_timeout_seconds=300,  # give more time for pod to start
         image_pull_policy='Always',
         is_delete_operator_pod=True,
         get_logs=True,
