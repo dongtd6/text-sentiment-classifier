@@ -79,7 +79,7 @@ with DAG(
         image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/stream-app:latest',
         cmds=["python3", "/app/c2c_data_streaming.py"],
         env_vars={
-            "FETCH_MODE": "latest",  # Fetch latest data (current day)
+            "FETCH_MODE": "latest_month",  # Fetch latest data (current day)
             "DB_HOST": "airflow-postgresql.orchestration.svc.cluster.local",
             "DB_PORT": "5432",
             "DB_NAME": "c2c_trade",
