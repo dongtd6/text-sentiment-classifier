@@ -79,7 +79,7 @@ with DAG(
         task_id='c2c_streaming_complete',
         name='c2c-streaming-all-in-one',
         namespace='orchestration',
-        image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/streaming-app:latest',
+        image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/stream-app:latest',
         cmds=["python3", "/app/c2c_data_streaming.py"],
         env_vars={
             "FETCH_MODE": "latest",  # Fetch latest data (current day)
