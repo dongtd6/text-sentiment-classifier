@@ -1,4 +1,4 @@
-binance_sdk_c2c
+binance-sdk-c2c
 PyYAML
 pandas
 pyarrow

@@ -10,13 +10,16 @@ CONFIG_PATH = os.path.join(BASE_DIR, "configs", "config.yml")
 with open(CONFIG_PATH) as f:
     cfg = yaml.safe_load(f)
 
-JARS_DIR = os.path.join(os.path.dirname(BASE_DIR), "jars")  # /job/jars
+JARS_DIR = "/opt/spark/jars"  # JARs are in /opt/spark/jars in apache/spark image
 
+# Explicitly list JARs to be sure we pick the right ones
 jars = [
     os.path.join(JARS_DIR, "postgresql-42.6.0.jar"),
     os.path.join(JARS_DIR, "deequ-2.0.3-spark-3.3.jar"),
-    os.path.join(JARS_DIR, "hadoop-aws-3.3.2.jar"),
-    os.path.join(JARS_DIR, "aws-java-sdk-bundle-1.11.1026.jar"),
+    os.path.join(JARS_DIR, "hadoop-aws-3.3.4.jar"),
+    os.path.join(JARS_DIR, "aws-java-sdk-bundle-1.12.262.jar"),
+    os.path.join(JARS_DIR, "delta-core_2.12-2.4.0.jar"),
+    os.path.join(JARS_DIR, "delta-storage-2.4.0.jar"),
 ]
 
 jars_str = ",".join(jars)
@@ -42,51 +45,58 @@ def get_spark(app_name: str):
         # Hive Metastore config
         .config("spark.sql.catalogImplementation", "hive")
         .config("spark.hadoop.hive.metastore.uris", metastore_host)
-        # Warehouse dir - will be set after Hadoop config is properly initialized
-        # Temporarily use a placeholder to avoid early S3A initialization
-        .config("spark.hadoop.hive.metastore.warehouse.dir", "s3a://bronze/warehouse")
+        # Default warehouse to bronze bucket for now, or could be a separate system bucket
+        .config("spark.sql.warehouse.dir", "s3a://bronze/warehouse")
+        .config(
+            "spark.hadoop.hive.metastore.warehouse.dir", "s3a://bronze/warehouse"
+        )
         # S3 config
         .config("spark.jars", jars_str)
+        # Use existing SparkContext's loaded JARs if not found in path
+        .config("spark.driver.extraClassPath", f"{JARS_DIR}/*")
+        .config("spark.executor.extraClassPath", f"{JARS_DIR}/*")
+        
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.hadoop.fs.s3a.endpoint", endpoint)
         .config("spark.hadoop.fs.s3a.access.key", access_key)
         .config("spark.hadoop.fs.s3a.secret.key", secret_key)
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")  # Disable SSL
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
-        # S3A timeout configurations (must be in milliseconds as integers, NOT with time units like "60s")
-        # These override Hadoop's default time-unit-based values that cause NumberFormatException
-        .config("spark.hadoop.fs.s3a.connection.timeout", "200000")  # 200 seconds in ms
-        .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")  # 60 seconds in ms
-        .config("spark.hadoop.fs.s3a.attempts.maximum", "10")
-        .config("spark.hadoop.fs.s3a.connection.maximum", "15")
-        .config("spark.hadoop.fs.s3a.threads.max", "10")
-        .config("spark.hadoop.fs.s3a.threads.core", "5")
-        .config("spark.hadoop.fs.s3a.max.total.tasks", "10")
-        .config("spark.hadoop.fs.s3a.socket.send.buffer", "8192")
-        .config("spark.hadoop.fs.s3a.socket.recv.buffer", "8192")
-        .config("spark.hadoop.fs.s3a.paging.maximum", "5000")
-        .config("spark.hadoop.fs.s3a.block.size", "33554432")  # 32MB
-        .config("spark.hadoop.fs.s3a.buffer.dir", "/tmp")
-        .config("spark.hadoop.fs.s3a.fast.upload", "true")
-        .config("spark.hadoop.fs.s3a.multipart.size", "104857600")  # 100MB
-        .config("spark.hadoop.fs.s3a.multipart.threshold", "2147483647")  # 2GB
+        # FORCE SimpleAWSCredentialsProvider to prevent looking for V2 classes
+        .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+        
+        # S3A Timeout and Threads - Critical Fix for NumberFormatException
+        # Set values as integers (milliseconds), overriding any '60s' defaults
+        .config("spark.hadoop.fs.s3a.connection.timeout", "60000")
+        .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")
+        .config("spark.hadoop.fs.s3a.threads.keepalivetime", "60") # Only use integer
+        
+        # Fix for NumberFormatException: "24h"
+        # Override purge age with seconds (86400 = 24h) to avoid string parsing error
+        .config("spark.hadoop.fs.s3a.multipart.purge.age", "86400")
     )
     spark = configure_spark_with_delta_pip(builder).enableHiveSupport().getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
     
-    # Set Hadoop S3A configurations directly on the Hadoop Configuration object
-    # This ensures they override any defaults that might use time units
-    hadoop_conf = spark.sparkContext._jsc.hadoopConfiguration()
-    hadoop_conf.set("fs.s3a.connection.timeout", "200000")
+    # Explicitly set Hadoop configuration to ensure correct types and providers
+    sc = spark.sparkContext
+    hadoop_conf = sc._jsc.hadoopConfiguration()
+    
+    # Fix for [CANNOT_DETERMINE_TYPE] or NumberFormatException with time units
+    hadoop_conf.set("fs.s3a.connection.timeout", "60000")
     hadoop_conf.set("fs.s3a.connection.establish.timeout", "60000")
-    hadoop_conf.set("fs.s3a.attempts.maximum", "10")
-    hadoop_conf.set("fs.s3a.connection.maximum", "15")
-    hadoop_conf.set("fs.s3a.threads.max", "10")
+    
+    # Fix for ClassNotFoundException: EnvironmentVariableCredentialsProvider
+    hadoop_conf.set("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+    
+    # Fix for "24h" error
+    hadoop_conf.set("fs.s3a.multipart.purge.age", "86400")
+    
+    # Additional S3A settings for stability with MinIO
     hadoop_conf.set("fs.s3a.endpoint", endpoint)
     hadoop_conf.set("fs.s3a.access.key", access_key)
     hadoop_conf.set("fs.s3a.secret.key", secret_key)
-    hadoop_conf.set("fs.s3a.connection.ssl.enabled", "false")
     hadoop_conf.set("fs.s3a.path.style.access", "true")
-    hadoop_conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    hadoop_conf.set("fs.s3a.connection.ssl.enabled", "false")
     
     return spark

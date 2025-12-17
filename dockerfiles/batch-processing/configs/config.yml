@@ -20,4 +20,16 @@ predict:
   batch_size: 100
 metastore:
   host: "thrift://hive-metastore.storage.svc.cluster.local:9083"
-  #host: "thrift://localhost:9083"  
+  #host: "thrift://localhost:9083"
+
+gcs:
+  credential_path: "/secrets/google-auth.json"  # Mounted from K8s secret
+  default_bucket: "binance-gold-bucket"   # Update with your bucket name
+  default_location: "asia-southeast1"
+
+gold_backup:
+  enabled: true
+  backup_bucket: "binance-gold-bucket"    # Update with your bucket name
+  backup_prefix: "gold_backup"
+  workers: 16
+  use_threads: false  # false = process mode, true = thread mode
