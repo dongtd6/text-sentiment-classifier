@@ -40,10 +40,11 @@ class C2CDataStreaming:
             raise ValueError("BINANCE_API_KEY and BINANCE_API_SECRET must be set")
         
         # Get database credentials from environment
-        self.db_host = os.getenv("DB_HOST", "postgresql.storage.svc.cluster.local")
+        # Defaults point to the orchestration Postgres service (Airflow's Postgres)
+        self.db_host = os.getenv("DB_HOST", "airflow-postgresql.orchestration.svc.cluster.local")
         self.db_port = os.getenv("DB_PORT", "5432")
-        self.db_name = os.getenv("DB_NAME", "postgres")
-        self.db_user = os.getenv("DB_USER", "pgadmin")
+        self.db_name = os.getenv("DB_NAME", "c2c_trade")
+        self.db_user = os.getenv("DB_USER", "postgres")
         self.db_password = os.getenv("DB_PASSWORD")
         
         if not self.db_password:
