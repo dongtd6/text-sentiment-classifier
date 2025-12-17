@@ -1,7 +1,8 @@
 # Dockerfile for C2C Trading Data Streaming Service
 # Fetches historical trading data from Binance C2C API and streams to PostgreSQL
 
-FROM python:3.9-slim
+# Use latest Python 3 slim image
+FROM python:3-slim
 
 # Set working directory
 WORKDIR /app

@@ -14,19 +14,15 @@ from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperato
 from airflow.providers.cncf.kubernetes.secret import Secret
 
 # Define Kubernetes secrets
-api_key_secret = Secret(
-    deploy_type='env',
-    deploy_target='BINANCE_API_KEY',
-    secret='airflow-producer-secret',
-    key='API_KEY'
-)
+api_key_secret = Secret('env', 
+'BINANCE_API_KEY', 
+'airflow-producer-secret', 
+'API_KEY')
 
-api_secret_secret = Secret(
-    deploy_type='env',
-    deploy_target='BINANCE_API_SECRET',
-    secret='airflow-producer-secret',
-    key='API_SECRET'
-)
+api_secret_secret = Secret('env', 
+'BINANCE_API_SECRET', 
+'airflow-producer-secret', 
+'API_SECRET')
 
 db_password_secret = Secret(
     deploy_type='env',
@@ -56,8 +52,8 @@ default_args = {
     'depends_on_past': False,
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 2,
-    'retry_delay': timedelta(minutes=5),
+    'retries': 1,
+    'retry_delay': timedelta(minutes=2),
 }
 
 # Create DAG

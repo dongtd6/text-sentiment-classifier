@@ -7,13 +7,19 @@ from kubernetes.client import models as k8s
 # Define where to fetch secrets from in Kubernetes
 # This maps the Kubernetes Secret 'airflow-producer-secret' key 'API_KEY' 
 # to the environment variable 'BINANCE_API_KEY' inside the pod
-api_key_secret = Secret('env', 'BINANCE_API_KEY', 'airflow-producer-secret', 'API_KEY')
-api_secret_secret = Secret('env', 'BINANCE_API_SECRET', 'airflow-producer-secret', 'API_SECRET')
+api_key_secret = Secret('env', 
+'BINANCE_API_KEY', 
+'airflow-producer-secret', 
+'API_KEY')
+api_secret_secret = Secret('env', 
+'BINANCE_API_SECRET', 
+'airflow-producer-secret', 
+'API_SECRET')
 
 default_args = {
     'owner': 'airflow',
     'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    'retry_delay': timedelta(minutes=2),
 }
 
 with DAG(
