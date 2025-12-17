@@ -78,9 +78,8 @@ pipeline {
       stages {
         stage('Build Streaming Docker Image') {
           steps {
-            dir('dockerfiles/streaming-processing') {
-              sh 'docker build -t stream-app:latest .'
-            }
+            // Build from root workspace context (like batch-processing)
+            sh 'docker build -f dockerfiles/streaming-processing/Dockerfile -t stream-app:latest .'
           }
         }
         stage('Authenticate with GCP & Configure Docker') {
