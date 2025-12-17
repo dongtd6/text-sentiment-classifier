@@ -29,7 +29,7 @@ db_password_secret = Secret(
     deploy_target='DB_PASSWORD',
     # Use the Airflow Postgres secret in the orchestration namespace
     secret='airflow-postgresql',
-    key='postgresql-password'
+    key='postgres-password'
 )
 
 # Telegram secrets
