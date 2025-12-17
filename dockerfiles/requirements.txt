@@ -5,3 +5,4 @@ pyarrow
 psycopg2-binary
 SQLAlchemy
 loguru
+requests
