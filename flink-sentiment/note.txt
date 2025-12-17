@@ -1,0 +1,25 @@
+1# Set parameter to build
+PROJECT_ID=dongtd2
+REGION=asia-southeast1    
+IMAGE=flink-sentiment
+TAG=v1.39
+
+# Login registry
+gcloud auth configure-docker ${REGION}-docker.pkg.dev
+
+# Create Artifact Registry repo (if not)
+gcloud artifacts repositories create flink \
+  --repository-format=docker \
+  --location=${REGION} \
+  --description="Flink job images"
+
+# Build & push
+docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/flink/${IMAGE}:${TAG} .
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/flink/${IMAGE}:${TAG}
+------------------------------------------------------------------------
+
+The push refers to repository [asia-southeast1-docker.pkg.dev/dongtd2/flink/flink-sentiment]
+
+Check image:
+docker run -it --rm ${REGION}-docker.pkg.dev/${PROJECT_ID}/flink/${IMAGE}:${TAG} /bin/bash
+------------------------------------------------------------------------

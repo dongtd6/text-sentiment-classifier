@@ -18,7 +18,7 @@ RUN apt-get update && \
 COPY dockerfiles/requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Copy shared modules from parent dockerfiles directory
 COPY dockerfiles/utils.py /app/utils.py

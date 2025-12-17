@@ -1,0 +1,61 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: flink-c2c-telegram-job
+  namespace: infrastructure
+spec:
+  image: asia-southeast1-docker.pkg.dev/dongtd2/flink/flink-sentiment:v1.40  # Update as needed
+  flinkVersion: v1_19
+  serviceAccount: flink
+  flinkConfiguration:
+    python.executable: /usr/bin/python3
+    python.client.executable: /usr/bin/python3
+    parallelism.default: 1
+    restart-strategy: fixed-delay
+    restart-strategy.fixed-delay.attempts: 3
+    restart-strategy.fixed-delay.delay: 60s
+    jobmanager.memory.process.size: 768m
+    jobmanager.memory.off-heap.size: 128m
+    jobmanager.memory.jvm.overhead.min: 192m
+    jobmanager.memory.jvm.overhead.max: 256m
+  job:
+    jarURI: local:///opt/flink/opt/flink-python_2.12-1.19.1.jar
+    entryClass: "org.apache.flink.client.python.PythonDriver"
+    args:
+      - "-pyclientexec"
+      - "/usr/bin/python3"
+      - "-py"
+      - "/opt/flink/usrlib/flink_job_c2c_telegram.py"
+      - "--bootstrap"
+      - "kafka-kafka-bootstrap.infrastructure.svc:9192"
+      - "--topic"
+      - "c2c_cdc.c2c.trades"  # CDC topic for c2c.trades table
+    parallelism: 1
+    upgradeMode: stateless
+    state: running
+  jobManager:
+    resource:
+      memory: "768m"
+      cpu: 0.1
+    replicas: 1
+  taskManager:
+    resource:
+      memory: "1024m"
+      cpu: 0.1
+    replicas: 1
+  podTemplate:
+    spec:
+      containers:
+        - name: flink-main-container
+          env:
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-secrets
+                  key: bot-token
+            - name: TELEGRAM_CHAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-secrets
+                  key: chat-id
+

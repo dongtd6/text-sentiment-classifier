@@ -1,7 +1,7 @@
-[tool.black]
-line-length = 88
-target-version = ['py38'] # Hoặc phiên bản Python bạn đang dùng
-
-[tool.isort]
-profile = "black"
-line_length = 88 # Đảm bảo khớp với black
+[project]
+name = "sentiment-classifier-ml-system-on-k8s"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
