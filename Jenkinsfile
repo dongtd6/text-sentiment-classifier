@@ -62,7 +62,7 @@ pipeline {
     }
 
     /* =====================================================
-     * Streaming Processing
+     * Streaming Processing (TAG = GIT COMMIT)
      * ===================================================== */
     stage('Streaming: Build & Deploy') {
       when {
@@ -88,11 +88,16 @@ pipeline {
           }
         }
 
-        stage('Tag & Push Streaming Image') {
+        stage('Tag & Push Streaming Image (git commit)') {
           steps {
             sh '''
-              docker tag stream-app:latest ${GCR_REPO}/stream-app:latest
-              docker push ${GCR_REPO}/stream-app:latest
+              SHORT_COMMIT=${GIT_COMMIT:0:7}
+              IMAGE_TAG=git-${SHORT_COMMIT}
+
+              echo "🔖 Streaming image tag: ${IMAGE_TAG}"
+
+              docker tag stream-app:latest ${GCR_REPO}/stream-app:${IMAGE_TAG}
+              docker push ${GCR_REPO}/stream-app:${IMAGE_TAG}
             '''
           }
         }
@@ -100,7 +105,7 @@ pipeline {
     }
 
     /* =====================================================
-     * Ingestion Processing (NEW)
+     * Ingestion Processing
      * ===================================================== */
     stage('Ingestion: Build & Deploy') {
       when {
