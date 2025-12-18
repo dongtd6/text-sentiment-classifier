@@ -1,11 +1,9 @@
 """
-Simple C2C Streaming Pipeline DAG
-One task that does everything:
+Simple C2C Ingestion Pipeline DAG (Fetch-only)
 - Fetch data from Binance C2C API
-- Insert into c2c.trades table
-- Send Telegram notification with results
-
-CDC and Flink will be set up separately.
+- No DB insert
+- No Telegram
+- Used for ingestion testing
 """
 
 from datetime import datetime, timedelta
@@ -13,90 +11,79 @@ from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.providers.cncf.kubernetes.secret import Secret
 
-# Define Kubernetes secrets
-api_key_secret = Secret('env', 
-'BINANCE_API_KEY', 
-'airflow-producer-secret', 
-'API_KEY')
+# ============================================================
+# Binance API Secrets (ONLY what ingestion needs)
+# ============================================================
 
-api_secret_secret = Secret('env', 
-'BINANCE_API_SECRET', 
-'airflow-producer-secret', 
-'API_SECRET')
-
-db_password_secret = Secret(
+api_key_secret = Secret(
     deploy_type='env',
-    deploy_target='DB_PASSWORD',
-    # Use the Airflow Postgres secret in the orchestration namespace
-    secret='airflow-postgresql',
-    key='postgres-password'
+    deploy_target='BINANCE_API_KEY',
+    secret='airflow-producer-secret',
+    key='API_KEY'
 )
 
-# Telegram secrets
-telegram_bot_token_secret = Secret(
+api_secret_secret = Secret(
     deploy_type='env',
-    deploy_target='TELEGRAM_BOT_TOKEN',
-    secret='telegram-secrets',
-    key='bot-token'
+    deploy_target='BINANCE_API_SECRET',
+    secret='airflow-producer-secret',
+    key='API_SECRET'
 )
 
-telegram_chat_id_secret = Secret(
-    deploy_type='env',
-    deploy_target='TELEGRAM_CHAT_ID',
-    secret='telegram-secrets',
-    key='chat-id'
-)
-
+# ============================================================
 # Default arguments
+# ============================================================
+
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
     'retries': 1,
     'retry_delay': timedelta(minutes=2),
 }
 
-# Create DAG
+# ============================================================
+# DAG definition
+# ============================================================
+
 with DAG(
-    dag_id='c2c_simple_streaming',
+    dag_id='c2c_ingestion_latest_month',
     default_args=default_args,
-    description='C2C streaming: Ingest + Insert + Telegram (all in one)',
+    description='C2C ingestion only (fetch latest month)',
     schedule='@hourly',
     start_date=datetime(2024, 1, 1),
     catchup=False,
-    tags=['c2c', 'streaming', 'simple']
+    tags=['c2c', 'ingestion', 'test']
 ) as dag:
-    
+
     # ============================================================
-    # SINGLE TASK: Ingest Data + Insert + Send Telegram
+    # SINGLE TASK: INGESTION ONLY
     # ============================================================
-    
-    c2c_streaming_job = KubernetesPodOperator(
-        task_id='c2c_streaming_complete',
-        name='c2c-streaming-all-in-one',
+
+    c2c_ingestion_job = KubernetesPodOperator(
+        task_id='c2c_ingestion_latest_month',
+        name='c2c-ingestion-latest-month',
         namespace='orchestration',
-        image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/stream-app:latest',
-        cmds=["python3", "/app/c2c_data_streaming.py"],
+
+        # 🔥 CHANGED: use ingestion image
+        image='asia-southeast1-docker.pkg.dev/binance-test-479915/bnb-c2c-images/ingestion-app:latest',
+
+        # 🔥 CHANGED: ingestion entrypoint
+        cmds=["python3", "/app/c2c_ingestion.py"],
+
+        # 🔥 ONLY ingestion-related envs
         env_vars={
-            "FETCH_MODE": "latest_month",  # Fetch latest data (current day)
-            "DB_HOST": "airflow-postgresql.orchestration.svc.cluster.local",
-            "DB_PORT": "5432",
-            "DB_NAME": "c2c_trade",
-            "DB_USER": "postgres"
+            "FETCH_MODE": "latest_month",
         },
+
+        # 🔥 ONLY API secrets (no DB, no Telegram)
         secrets=[
             api_key_secret,
             api_secret_secret,
-            db_password_secret,
-            telegram_bot_token_secret,
-            telegram_chat_id_secret
         ],
-        startup_timeout_seconds=300,  # give more time for pod to start
+
+        startup_timeout_seconds=300,
         image_pull_policy='Always',
         is_delete_operator_pod=True,
         get_logs=True,
         in_cluster=True,
         kubernetes_conn_id=None,
     )
-
