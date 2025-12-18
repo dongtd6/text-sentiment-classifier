@@ -73,7 +73,7 @@ INSERT INTO c2c.trades (
     total_price,
     unit_price,
     order_status,
-    create_time_ms,
+    create_time,
     commission,
     counter_part_nick_name,
     advertisement_role
@@ -89,7 +89,7 @@ VALUES (
     %(total_price)s,
     %(unit_price)s,
     %(order_status)s,
-    %(create_time_ms)s,
+    %(create_time)s,
     %(commission)s,
     %(counter_part_nick_name)s,
     %(advertisement_role)s
