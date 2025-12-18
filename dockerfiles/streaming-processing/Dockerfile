@@ -25,3 +25,4 @@ ENV PYTHONPATH="/opt/flink/usrlib"
 ENV FLINK_PYTHON_EXECUTABLE="/usr/bin/python3"
 
 USER flink
+# new build
