@@ -9,13 +9,13 @@ spec:
   class: io.debezium.connector.postgresql.PostgresConnector
   tasksMax: 1
   config:
-    # PostgreSQL Connection
+    # PostgreSQL Connection (orchestration namespace)
     plugin.name: pgoutput
-    database.hostname: postgresql.storage.svc.cluster.local
+    database.hostname: airflow-postgresql.orchestration.svc.cluster.local
     database.port: "5432"
-    database.user: pgadmin
-    database.password: pw123
-    database.dbname: postgres
+    database.user: postgres
+    database.password: "postgres"
+    database.dbname: c2c_trade
     
     # Table Configuration
     table.include.list: c2c.trades
@@ -26,7 +26,7 @@ spec:
     topic.prefix: c2c_cdc
     
     # Snapshot Configuration
-    snapshot.mode: initial  # Take initial snapshot of existing data
+    snapshot.mode: initial
     
     # Converters (schema-less JSON for easier processing)
     key.converter: org.apache.kafka.connect.json.JsonConverter
@@ -54,9 +54,5 @@ spec:
     # Include transaction metadata
     provide.transaction.metadata: "true"
     
-    # Column and field mappings
-    column.include.list: "c2c.trades.*"
-    
     # Time precision
     time.precision.mode: connect
-

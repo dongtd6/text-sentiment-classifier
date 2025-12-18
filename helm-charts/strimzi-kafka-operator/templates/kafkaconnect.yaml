@@ -63,6 +63,12 @@ spec:
     - name: connector-secrets
       secret:
         secretName: {{ .Values.kafkaConnect.s3Credentials }}
+  livenessProbe:
+    initialDelaySeconds: 120
+    timeoutSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 120
+    timeoutSeconds: 10
   template:
     connectContainer:
       env:

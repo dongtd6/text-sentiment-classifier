@@ -11,15 +11,15 @@ spec:
   config:
     plugin.name: pgoutput # <== must be pgoutput for Postgres 10+
 
-    database.hostname: postgresql.storage.svc.cluster.local # <== your Postgres hostname
+    database.hostname: airflow-postgresql.orchestration.svc.cluster.local # switch to orchestration postgres
     database.port: "5432" 
-    database.user: pgadmin
-    database.password: pw123
-    database.dbname: crm_db
+    database.user: postgres
+    database.password: postgres
+    database.dbname: c2c_trade
 
-    table.include.list: public.product_reviews
-    publication.name: debezium
-    slot.name: debezium_slot
+    table.include.list: c2c.trades
+    publication.name: c2c_publication
+    slot.name: c2c_trades_slot
 
     topic.prefix: cdc          # <== prefix for Kafka topics
 
