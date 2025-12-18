@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 Flink Job: Stream CDC C2C trades from Kafka and send Telegram notifications
-Only handles CDC op = 'c' (INSERT)
+- Only handles CDC op = 'c'
+- NO Markdown (plain text only)
 """
 
 import argparse
 import json
 import logging
 import os
-import sys
 from datetime import datetime
 
 import requests
@@ -24,9 +24,15 @@ from pyflink.datastream.connectors.kafka import (
     KafkaOffsetsInitializer,
 )
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# =========================================================
+# Logging
+# =========================================================
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+)
+logger = logging.getLogger("flink-c2c-telegram")
 
 # =========================================================
 # Utils
@@ -48,18 +54,32 @@ def format_number(v, decimals=8):
     except Exception:
         return str(v)
 
+# =========================================================
+# Telegram HTTP session (reuse)
+# =========================================================
+
+SESSION = requests.Session()
+SESSION.mount(
+    "https://",
+    HTTPAdapter(
+        max_retries=Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+        )
+    ),
+)
 
 # =========================================================
-# Telegram sender
+# Telegram sender (PLAIN TEXT)
 # =========================================================
 
 def send_c2c_to_telegram(value, bot_token, chat_id):
     try:
         data = json.loads(value)
 
-        # CDC operation
-        op = data.get("op")
-        if op != "c":
+        # CDC operation: only INSERT
+        if data.get("op") != "c":
             return None
 
         trade = data.get("after")
@@ -72,43 +92,42 @@ def send_c2c_to_telegram(value, bot_token, chat_id):
         fiat_symbol = trade.get("fiat_symbol", "")
         amount = format_number(trade.get("amount"), 8)
         total_price = format_number(trade.get("total_price"), 2)
-        create_time = format_timestamp(trade.get("create_time_ms"))
+        create_time = format_timestamp(trade.get("create_time"))
 
         emoji = "🟢" if trade_type == "BUY" else "🔴"
 
+        # ✅ Plain text message (NO Markdown)
+        emoji = "🟢" if trade_type == "BUY" else "🔴"
+
         message = (
-            f"🆕 *New C2C Trade* {emoji}\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"📋 Order: `{order_number}`\n"
-            f"💱 Type: {trade_type}\n"
-            f"💰 Amount: {amount} {asset}\n"
-            f"💵 Total: {fiat_symbol}{total_price}\n"
-            f"🕐 Time: {create_time}"
+            f"📢 NEW C2C TRADE ALERT {emoji}\n"
+            f"━━━━━━━━━━━━━━\n"
+            f"🧾 Order : {order_number}\n"
+            f"🔄 Type  : {trade_type}\n"
+            f"🪙 Asset : {asset}\n"
+            f"📦 Amount: {amount}\n"
+            f"💰 Total : {fiat_symbol}{total_price}\n"
+            f"⏰ Time  : {create_time}"
         )
+
 
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
 
-        session = requests.Session()
-        retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
-        session.mount("https://", HTTPAdapter(max_retries=retries))
-
-        session.post(
+        SESSION.post(
             url,
             json={
                 "chat_id": chat_id,
                 "text": message,
-                "parse_mode": "Markdown",
             },
             timeout=10,
         ).raise_for_status()
 
-        logger.info(f"Telegram sent for order {order_number}")
+        logger.info("Telegram sent for order %s", order_number)
         return value
 
     except Exception as e:
-        logger.error(f"Telegram send error: {e}")
+        logger.error("Telegram send error: %s", e)
         return None
-
 
 # =========================================================
 # Main
@@ -149,8 +168,11 @@ def main(args):
         .filter(lambda x: x is not None)
     )
 
-    env.execute("C2C CDC → Telegram Streaming Job")
+    env.execute("C2C CDC → Telegram (Plain Text)")
 
+# =========================================================
+# Entrypoint
+# =========================================================
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
