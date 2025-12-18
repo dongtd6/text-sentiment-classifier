@@ -91,7 +91,7 @@ pipeline {
         stage('Tag & Push Streaming Image (git commit)') {
           steps {
             sh '''
-              SHORT_COMMIT=${GIT_COMMIT:0:7}
+              SHORT_COMMIT=$(echo "$GIT_COMMIT" | cut -c1-7)
               IMAGE_TAG=git-${SHORT_COMMIT}
 
               echo "🔖 Streaming image tag: ${IMAGE_TAG}"
